@@ -112,6 +112,14 @@
     .menu-btn{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid var(--glass-border);cursor:pointer;}
     .stats{grid-template-columns:repeat(2,1fr);} .row3{grid-template-columns:1fr;} .row2{grid-template-columns:1fr;}
   }
+  .social-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  .social-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--glass-border);}
+  .social-row i{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;color:#fff;}
+  .social-row i svg{width:17px;height:17px;fill:currentColor;}
+  .social-row label{margin:0 0 3px;font-size:11.5px;}
+  .social-row input{padding:8px 10px;font-size:13px;}
+  .social-row .w{flex:1;min-width:0;}
+  @media(max-width:700px){.social-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -144,6 +152,7 @@
       <a data-p="videos">🎬 Videos</a>
       <a data-p="profile">👤 Profile & Intro</a>
       <a data-p="contact">📞 Contact Links</a>
+      <a data-p="social">🌐 Social Media</a>
     </div>
     <div class="bottom">
       <a href="/" target="_blank" class="btn btn-ghost btn-sm site-link" style="justify-content:center">🌐 View Website</a>
@@ -171,7 +180,7 @@
           <b>🖼️ Photos:</b> Upload your design images (JPG/PNG/WebP). Choose a category (Branding / Social / Print / UI). They show in the Portfolio section — 1 big on top, 2 side-by-side below, repeating.<br><br>
           <b>🎬 Videos:</b> Upload an MP4 <i>or</i> paste a YouTube / Vimeo link. Pick the tab (Motion Graphics / Video Edit / Graphics Designs) and ratio. Each tab shows 16:9 on top and 9:16 pairs below.<br><br>
           <b>👤 Profile:</b> Change your photo, name, intro text and stats.<br><br>
-          <b>📞 Contact:</b> Update WhatsApp, Discord and phone links used across the whole site.
+          <b>📞 Contact:</b> Update WhatsApp, Discord and phone links used across the whole site.<br><br><b>🌐 Social Media:</b> Add YouTube, Instagram, Facebook, TikTok, Behance, Dribbble, LinkedIn, Fiverr and more — shown on your profile card, video section, contact and footer.
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn btn-primary" onclick="go('photos')">+ Add Photo</button>
@@ -307,6 +316,16 @@
       </div>
     </div>
 
+    <!-- SOCIAL -->
+    <div class="page" id="p-social">
+      <div class="card glass">
+        <h3>Social Media Links <span class="pill">Profile • Videos • Contact • Footer</span></h3>
+        <div class="hint">Paste your profile link for each platform. Empty ones are hidden automatically. Platforms marked 🎬 also appear as "Watch more on" buttons in the Video section.</div>
+        <div class="social-grid" id="socialForm"></div>
+        <button class="btn btn-primary" style="margin-top:8px" onclick="saveProfile()">💾 Save Social Links</button>
+      </div>
+    </div>
+
     <!-- CONTACT -->
     <div class="page" id="p-contact">
       <div class="card glass">
@@ -324,6 +343,7 @@
 <div class="modal" id="confirm"><div class="mbox glass"><h3 id="cf-text">Delete?</h3><div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button><button class="btn btn-danger" id="cf-yes">Delete</button></div></div></div>
 <div id="toast"></div>
 
+<script src="/socials.js"></script>
 <script>
 let DATA=null, phFilter='all', vdFilter='all';
 const $=id=>document.getElementById(id);
@@ -346,7 +366,7 @@ async function refresh(){DATA=await api('/api/content');renderAll();}
 
 // ---- NAV ----
 document.querySelectorAll('.nav a[data-p]').forEach(a=>a.onclick=()=>go(a.dataset.p));
-function go(p){document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('active',a.dataset.p===p));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='p-'+p));$('ptitle').textContent={dash:'Dashboard',photos:'Photos',videos:'Videos',profile:'Profile & Intro',contact:'Contact Links'}[p];$('side').classList.remove('open');window.scrollTo(0,0);}
+function go(p){document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('active',a.dataset.p===p));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='p-'+p));$('ptitle').textContent={dash:'Dashboard',photos:'Photos',videos:'Videos',profile:'Profile & Intro',contact:'Contact Links',social:'Social Media'}[p];$('side').classList.remove('open');window.scrollTo(0,0);}
 
 // ---- UPLOAD ----
 function pickFile(input,key){const f=input.files[0];if(!f)return;uploadFile(f,key);}
@@ -414,9 +434,11 @@ function renderVideos(){
 $('vd-filters').onclick=e=>{if(!e.target.dataset.c)return;vdFilter=e.target.dataset.c;[...$('vd-filters').children].forEach(c=>c.classList.toggle('active',c===e.target));renderVideos();};
 
 // ---- PROFILE / CONTACT ----
-function renderProfile(){const p=DATA.profile;$('pf-name').value=p.name;$('pf-brand').value=p.brand;$('pf-title').value=p.title;$('pf-h1').value=p.headline1;$('pf-h2').value=p.headline2;$('pf-h3').value=p.headline3;$('pf-bio').value=p.bio;$('pf-projects').value=p.stats.projects;$('pf-clients').value=p.stats.clients;$('pf-years').value=p.stats.years;$('pf-url').value=p.photo||'';$('pf-photo-prev').src=(p.photo?withBase(p.photo):'')||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90"><rect width="90" height="90" fill="%231a1f45"/><text x="45" y="58" text-anchor="middle" fill="white" font-size="36" font-weight="800" font-family="sans-serif">M</text></svg>';$('ct-wa').value=p.whatsapp;$('ct-dc').value=p.discord;$('ct-ph').value=p.phone;}
+function renderSocialForm(){const p=DATA.profile;const links=p.socials||{};$('socialForm').innerHTML=window.SOCIAL_PLATFORMS.map(x=>`<div class="social-row"><i style="background:${x.color}">${socialSvg(x)}</i><div class="w"><label>${x.name} ${x.video?'🎬':''}</label><input data-social="${x.key}" placeholder="${x.placeholder}" value="${(links[x.key]||'').replace(/"/g,'&quot;')}"></div></div>`).join('');}
+function collectSocials(){const o={};document.querySelectorAll('[data-social]').forEach(i=>{o[i.dataset.social]=i.value.trim();});return o;}
+function renderProfile(){const p=DATA.profile;renderSocialForm();$('pf-name').value=p.name;$('pf-brand').value=p.brand;$('pf-title').value=p.title;$('pf-h1').value=p.headline1;$('pf-h2').value=p.headline2;$('pf-h3').value=p.headline3;$('pf-bio').value=p.bio;$('pf-projects').value=p.stats.projects;$('pf-clients').value=p.stats.clients;$('pf-years').value=p.stats.years;$('pf-url').value=p.photo||'';$('pf-photo-prev').src=(p.photo?withBase(p.photo):'')||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90"><rect width="90" height="90" fill="%231a1f45"/><text x="45" y="58" text-anchor="middle" fill="white" font-size="36" font-weight="800" font-family="sans-serif">M</text></svg>';$('ct-wa').value=p.whatsapp;$('ct-dc').value=p.discord;$('ct-ph').value=p.phone;}
 async function saveProfile(){
-  const body={name:$('pf-name').value,brand:$('pf-brand').value,title:$('pf-title').value,headline1:$('pf-h1').value,headline2:$('pf-h2').value,headline3:$('pf-h3').value,bio:$('pf-bio').value,photo:$('pf-url').value,whatsapp:$('ct-wa').value,discord:$('ct-dc').value,phone:$('ct-ph').value,stats:{projects:+$('pf-projects').value||0,clients:+$('pf-clients').value||0,years:+$('pf-years').value||0}};
+  const body={name:$('pf-name').value,brand:$('pf-brand').value,title:$('pf-title').value,headline1:$('pf-h1').value,headline2:$('pf-h2').value,headline3:$('pf-h3').value,bio:$('pf-bio').value,photo:$('pf-url').value,whatsapp:$('ct-wa').value,discord:$('ct-dc').value,phone:$('ct-ph').value,socials:collectSocials(),stats:{projects:+$('pf-projects').value||0,clients:+$('pf-clients').value||0,years:+$('pf-years').value||0}};
   try{await api('/api/profile',{method:'PUT',body:JSON.stringify(body)});toast('Saved!');refresh();}catch(e){toast(e.message,false);}
 }
 

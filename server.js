@@ -42,7 +42,8 @@ const DEFAULT = {
     whatsapp: 'https://wa.me/qr/MF7FX6YDQPMFI1',
     discord: 'https://discord.com/users/1230145239365189697',
     phone: '+8801742678156',
-    stats: { projects: 150, clients: 112, years: 4 }
+    stats: { projects: 150, clients: 112, years: 4 },
+    socials: {}
   },
   photos: [],   // {id,title,category,sub,image,createdAt}
   videos: []    // {id,title,category(motion|edit|design),ratio(16:9|9:16),tool,duration,desc,src,thumb,createdAt}
@@ -134,7 +135,7 @@ app.post('/api/upload', auth, upload.single('file'), async (req, res) => {
 // ---------- PROFILE ----------
 app.put('/api/profile', auth, (req, res) => {
   const d = load();
-  d.profile = { ...d.profile, ...req.body, stats: { ...d.profile.stats, ...(req.body.stats || {}) } };
+  d.profile = { ...d.profile, ...req.body, stats: { ...d.profile.stats, ...(req.body.stats || {}) }, socials: { ...(d.profile.socials || {}), ...(req.body.socials || {}) } };
   save(d); res.json(d.profile);
 });
 

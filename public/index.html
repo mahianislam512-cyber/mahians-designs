@@ -291,6 +291,28 @@
 
   @media(max-width:900px){.blob{animation:none;filter:blur(50px);}}
   @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  /* social blocks */
+  .socials{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center;}
+  .socials a{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.08);border:1px solid var(--glass-border);display:grid;place-items:center;color:#fff;transition:transform .2s ease,background .2s ease,box-shadow .2s ease;text-decoration:none;position:relative;}
+  .socials a svg{width:17px;height:17px;fill:currentColor;}
+  .socials a:hover{transform:translateY(-3px);background:var(--sc,linear-gradient(135deg,var(--accent),var(--accent2)));border-color:transparent;box-shadow:0 8px 20px rgba(0,0,0,.4);}
+  .vsocial{display:flex;align-items:center;gap:12px;padding:12px 16px;margin-bottom:18px;flex-wrap:wrap;}
+  .vsocial>span{font-size:13px;color:var(--muted);font-weight:600;margin-right:4px;}
+  .vsocial a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:99px;font-size:13px;font-weight:600;color:#fff;text-decoration:none;background:rgba(255,255,255,.07);border:1px solid var(--glass-border);transition:transform .2s ease,background .2s ease;}
+  .vsocial a svg{width:16px;height:16px;fill:currentColor;}
+  .vsocial a:hover{transform:translateY(-2px);background:var(--sc);border-color:transparent;}
+  .follow{margin-top:22px;padding-top:18px;border-top:1px solid var(--glass-border);}
+  .follow h4{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;}
+  .follow-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+  .follow-grid a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:#fff;text-decoration:none;font-size:13px;font-weight:600;transition:transform .2s ease,background .2s ease;}
+  .follow-grid a i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--sc);flex-shrink:0;}
+  .follow-grid a svg{width:15px;height:15px;fill:#fff;}
+  .follow-grid a:hover{transform:translateY(-3px);background:rgba(255,255,255,.1);}
+  .foot-social{display:flex;gap:8px;flex-wrap:wrap;}
+  .foot-social a{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;background:rgba(255,255,255,.07);border:1px solid var(--glass-border);color:#fff;transition:background .2s ease;}
+  .foot-social a svg{width:14px;height:14px;fill:currentColor;}
+  .foot-social a:hover{background:var(--sc);border-color:transparent;}
+
   footer{padding:20px 26px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-size:13px;color:var(--muted);}
   footer b{color:#fff;}
 
@@ -395,12 +417,7 @@
           <div class="profile-img"><div id="profilePhoto">M</div></div>
           <h3 data-bind="name">Mahian</h3>
           <span data-bind="title">Graphic Designer • Dhaka, Bangladesh</span>
-          <div class="socials">
-            <a href="#" title="Behance"><svg viewBox="0 0 24 24"><path d="M7.4 5.3c.7 0 1.3.1 1.9.2.6.1 1 .3 1.4.6.4.3.7.6.9 1.1.2.4.3 1 .3 1.6 0 .7-.2 1.3-.5 1.8-.3.5-.8.9-1.4 1.2.9.3 1.5.7 1.9 1.3.4.6.6 1.4.6 2.2 0 .7-.1 1.3-.4 1.8-.3.5-.6.9-1.1 1.3-.5.3-1 .6-1.6.7-.6.2-1.2.2-1.9.2H1V5.3h6.4zm-.4 5.5c.6 0 1-.1 1.4-.4.4-.3.5-.7.5-1.3 0-.3-.1-.6-.2-.8-.1-.2-.3-.4-.5-.5-.2-.1-.4-.2-.7-.2-.3 0-.5-.1-.8-.1H3.9v3.3H7zm.2 5.8c.3 0 .6 0 .9-.1.3-.1.5-.2.7-.3.2-.2.4-.4.5-.6.1-.3.2-.6.2-1 0-.8-.2-1.3-.7-1.7-.4-.3-1-.5-1.7-.5H3.9v4.2h3.3zM16.3 16.4c.4.4 1 .6 1.8.6.6 0 1.1-.1 1.5-.4.4-.3.7-.6.8-.9h2.4c-.4 1.2-1 2-1.8 2.6-.8.5-1.8.8-2.9.8-.8 0-1.5-.1-2.2-.4-.6-.3-1.2-.6-1.6-1.1-.4-.5-.8-1-1-1.7-.2-.7-.4-1.4-.4-2.2 0-.8.1-1.5.4-2.1.2-.7.6-1.2 1-1.7.5-.5 1-.8 1.6-1.1.6-.3 1.3-.4 2.1-.4.9 0 1.6.2 2.2.5.6.3 1.2.8 1.6 1.3.4.6.7 1.2.9 1.9.2.7.2 1.5.2 2.3h-7.1c0 .8.3 1.5.5 2zm3.2-5.4c-.3-.4-.9-.6-1.5-.6-.4 0-.8.1-1.1.2-.3.1-.5.3-.7.5-.2.2-.3.4-.4.7-.1.2-.1.5-.1.7h4.5c-.1-.7-.4-1.2-.7-1.5zM15.1 6.6h5.5v1.4h-5.5z"/></svg></a>
-            <a href="#" title="Dribbble"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.6 4.6a8.5 8.5 0 0 1 1.9 5.3c-.3-.1-3.1-.6-5.9-.3l-.5-1.2-.3-.6c3.1-1.3 4.5-3 4.8-3.2zM12 3.5c2.2 0 4.1.8 5.6 2.1-.2.3-1.5 1.9-4.4 3-1.4-2.5-2.9-4.6-3.1-4.9.6-.1 1.2-.2 1.9-.2zM8.4 4.3c.2.3 1.7 2.4 3.1 4.9-3.9 1-7.3 1-7.7 1 .5-2.6 2.3-4.8 4.6-5.9zM3.5 12v-.3c.4 0 4.4.1 8.6-1.2.2.5.5.9.7 1.4l-.3.1C8.1 13.4 5.8 17.3 5.6 17.6A8.5 8.5 0 0 1 3.5 12zm8.5 8.5c-2 0-3.8-.7-5.3-1.8.2-.3 1.9-3.6 6.7-5.3h.1c1.2 3 1.6 5.5 1.8 6.3-1 .5-2.1.8-3.3.8zm4.7-1.6c-.1-.6-.5-3-1.6-5.9 2.6-.4 4.9.3 5.2.4-.4 2.3-1.7 4.3-3.6 5.5z"/></svg></a>
-            <a href="#" title="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.8.1 3.2.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.8.1s-3.6 0-4.8-.1c-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8C2.4 3.9 4 2.4 7.2 2.3c1.2-.1 1.6-.1 4.8-.1zM12 0C8.7 0 8.3 0 7.1.1 2.7.3.3 2.7.1 7.1 0 8.3 0 8.7 0 12s0 3.7.1 4.9c.2 4.4 2.6 6.8 7 7 1.2.1 1.6.1 4.9.1s3.7 0 4.9-.1c4.4-.2 6.8-2.6 7-7 .1-1.2.1-1.6.1-4.9s0-3.7-.1-4.9c-.2-4.4-2.6-6.8-7-7C15.7 0 15.3 0 12 0zm0 5.8a6.2 6.2 0 1 0 0 12.4 6.2 6.2 0 0 0 0-12.4zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.8a1.4 1.4 0 1 0 0 2.9 1.4 1.4 0 0 0 0-2.9z"/></svg></a>
-            <a href="#" title="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.4 20.5h-3.6v-5.6c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9v5.7H9.3V9h3.4v1.6c.5-.9 1.6-1.8 3.4-1.8 3.6 0 4.3 2.4 4.3 5.5v6.2zM5.3 7.4a2.1 2.1 0 1 1 0-4.1 2.1 2.1 0 0 1 0 4.1zm1.8 13.1H3.6V9h3.5v11.5zM22.2 0H1.8C.8 0 0 .8 0 1.7v20.5c0 1 .8 1.8 1.8 1.8h20.5c1 0 1.8-.8 1.8-1.8V1.7C24 .8 23.2 0 22.2 0z"/></svg></a>
-          </div>
+          <div class="socials" id="profileSocials"></div>
         </div>
       </div>
     </section>
@@ -492,6 +509,7 @@
         <span class="vtab" data-v="edit"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.1 15.9M14.5 14.5L20 20M8.1 8.1L12 12"/></svg>Video Edit</span>
         <span class="vtab" data-v="design"><svg viewBox="0 0 24 24"><path d="M4 20l4-1 10-10-3-3L5 16z"/><path d="M13 7l3 3"/></svg>Graphics Designs</span>
       </div>
+      <div class="vsocial glass" id="videoSocials" style="display:none"></div>
       <div class="vgrid">
         <div class="vcard reveal land on" data-vcat="motion" data-src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" data-title="Logo Reveal Animation" data-sub="Motion Graphics • After Effects • 16:9">
           <div class="vthumb"><svg viewBox="0 0 480 270" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="v1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#1e1b4b"/></linearGradient></defs><rect width="480" height="270" fill="url(#v1)"/><circle cx="240" cy="135" r="60" fill="none" stroke="#fff" stroke-width="8" stroke-dasharray="40 14"/><circle cx="240" cy="135" r="24" fill="#ff8ab8"/><circle cx="120" cy="70" r="4" fill="#fff"/><circle cx="360" cy="200" r="6" fill="#7ee8fa"/><circle cx="380" cy="80" r="3" fill="#fff"/></svg><span class="vcat">Motion Graphics</span><span class="vratio">16:9</span><div class="play"><span></span></div><span class="vdur">0:12</span></div>
@@ -613,13 +631,14 @@
               <em>→</em>
             </a>
           </div>
+          <div class="follow" id="contactSocials" style="display:none"><h4>Follow me on</h4><div class="follow-grid"></div></div>
         </div>
       </div>
     </section>
 
     <footer class="glass">
       <div>© 2026 <b>Mahians Designs</b>. All rights reserved.</div>
-      <div>Designed with 💜 by Mahian</div>
+      <div class="foot-social" id="footerSocials"></div>
     </footer>
   </main>
 </div>
@@ -632,6 +651,7 @@
   </div>
 </div>
 
+<script src="/socials.js"></script>
 <script>
   // Reveal on scroll
   const io = new IntersectionObserver(entries=>{
@@ -758,6 +778,7 @@
   }
   function applyContent(d){
     const p=d.profile||{};
+    renderSocials(p);
     // text binds
     document.querySelectorAll('[data-bind]').forEach(el=>{
       const k=el.dataset.bind;
@@ -801,6 +822,23 @@
       vg.querySelectorAll('.vcard').forEach(bindVideo);
     }
   }
+
+  function renderSocials(p){
+    const links=p.socials||{};
+    const list=window.SOCIAL_PLATFORMS.filter(x=>links[x.key]&&links[x.key].trim());
+    const prof=document.getElementById('profileSocials');
+    // fallback demo when nothing configured
+    const show=list.length?list:window.SOCIAL_PLATFORMS.slice(0,4).map(x=>({...x,_demo:true}));
+    prof.innerHTML=show.map(x=>`<a href="${x._demo?'#':escH(links[x.key])}" ${x._demo?'':'target="_blank" rel="noopener"'} title="${x.name}" style="--sc:${x.color}">${socialSvg(x)}</a>`).join('');
+    const vs=document.getElementById('videoSocials');
+    const vlist=list.filter(x=>x.video);
+    if(vlist.length){vs.style.display='flex';vs.innerHTML='<span>📺 Watch more on</span>'+vlist.map(x=>`<a href="${escH(links[x.key])}" target="_blank" rel="noopener" style="--sc:${x.color}">${socialSvg(x)}${x.name}</a>`).join('');}
+    const cs=document.getElementById('contactSocials');
+    if(list.length){cs.style.display='block';cs.querySelector('.follow-grid').innerHTML=list.map(x=>`<a href="${escH(links[x.key])}" target="_blank" rel="noopener" style="--sc:${x.color}"><i>${socialSvg(x)}</i>${x.name}</a>`).join('');}
+    const fs=document.getElementById('footerSocials');
+    fs.innerHTML=list.length?list.map(x=>`<a href="${escH(links[x.key])}" target="_blank" rel="noopener" title="${x.name}" style="--sc:${x.color}">${socialSvg(x)}</a>`).join(''):'<span>Designed with 💜 by Mahian</span>';
+  }
+  renderSocials({});
   fetch('/api/content').then(r=>r.json()).then(applyContent).catch(()=>{});
 </script>
 </body>
