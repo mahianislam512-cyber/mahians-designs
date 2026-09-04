@@ -149,15 +149,22 @@ app.post('/api/upload', auth, upload.single('file'), async (req, res) => {
   if (!USE_CLOUD) return res.json({ url: '/uploads/' + req.file.filename, name: req.file.originalname, size: req.file.size });
   try {
     const isVideo = /\.(mp4|webm|mov|m4v)$/i.test(req.file.originalname);
-    const r = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'mahians-designs', resource_type: isVideo ? 'video' : 'auto',
-      chunk_size: 6 * 1024 * 1024, use_filename: true, unique_filename: true
-    });
+    const MB = req.file.size / 1024 / 1024;
+    if (isVideo && MB > 100) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({ error: `Video is ${MB.toFixed(0)}MB — Cloudinary free plan allows max 100MB per video. Please compress it, or upload to YouTube and paste the link instead.` });
+    }
+    const opts = { folder: 'mahians-designs', resource_type: isVideo ? 'video' : 'auto', use_filename: true, unique_filename: true, timeout: 600000 };
+    const r = isVideo
+      ? await new Promise((ok, bad) => cloudinary.uploader.upload_large(req.file.path, { ...opts, chunk_size: 6 * 1024 * 1024 }, (e, x) => e ? bad(e) : ok(x)))
+      : await cloudinary.uploader.upload(req.file.path, opts);
+    console.log(`[upload] ${isVideo ? 'video' : 'image'} ${req.file.originalname} (${MB.toFixed(1)}MB) -> ${r.secure_url}`);
     fs.unlink(req.file.path, () => {});
     res.json({ url: r.secure_url, name: req.file.originalname, size: req.file.size, public_id: r.public_id });
   } catch (e) {
     fs.unlink(req.file.path, () => {});
-    res.status(500).json({ error: 'Cloud upload failed: ' + e.message });
+    console.log('[upload] FAILED', req.file.originalname, e.message);
+    res.status(500).json({ error: 'Cloud upload failed: ' + (e.message || JSON.stringify(e)) });
   }
 });
 

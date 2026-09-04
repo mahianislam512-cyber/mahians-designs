@@ -237,7 +237,7 @@
             <label>Upload video file</label>
             <div class="drop" id="vd-drop">
               <input type="file" accept="video/mp4,video/webm,video/quicktime" onchange="pickFile(this,'vd')">
-              <div class="ic">🎬</div><p>Click or drag a video here</p><small>MP4 / WebM / MOV — up to 500MB</small>
+              <div class="ic">🎬</div><p>Click or drag a video here</p><small>MP4 / WebM / MOV — max 100MB (bigger? upload to YouTube & paste link)</small>
             </div>
             <div class="progress" id="vd-prog"><i></i></div>
             <div class="pfile" id="vd-file"></div>
@@ -370,15 +370,17 @@ document.querySelectorAll('.nav a[data-p]').forEach(a=>a.onclick=()=>go(a.datase
 function go(p){document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('active',a.dataset.p===p));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='p-'+p));$('ptitle').textContent={dash:'Dashboard',photos:'Photos',videos:'Videos',profile:'Profile & Intro',contact:'Contact Links',social:'Social Media'}[p];$('side').classList.remove('open');window.scrollTo(0,0);}
 
 // ---- UPLOAD ----
-function pickFile(input,key){const f=input.files[0];if(!f)return;uploadFile(f,key);}
+function pickFile(input,key){const f=input.files[0];if(!f)return;const MB=f.size/1024/1024;if(key==='vd'&&MB>100){toast('Video is '+MB.toFixed(0)+'MB — max 100MB. Compress it or use a YouTube link.',false);$('vd-file').textContent='❌ Too large ('+MB.toFixed(0)+'MB). Max 100MB — or paste a YouTube link below.';input.value='';return;}uploadFile(f,key);}
 function uploadFile(file,key){
   const prog=$(key+'-prog'),bar=prog.querySelector('i'),lbl=$(key+'-file');
-  prog.style.display='block';bar.style.width='0%';lbl.textContent='Uploading '+file.name+' …';
+  prog.style.display='block';bar.style.width='0%';lbl.textContent='Uploading '+file.name+' … please wait, do not close';const sb=$(key==='th'?'vd-save':key+'-save');if(sb){sb.disabled=true;}
   const fd=new FormData();fd.append('file',file);
   const xhr=new XMLHttpRequest();xhr.open('POST',withBase('/api/upload'));xhr.setRequestHeader('Authorization','Bearer '+tok());
   xhr.upload.onprogress=e=>{if(e.lengthComputable)bar.style.width=Math.round(e.loaded/e.total*100)+'%';};
-  xhr.onload=()=>{try{const j=JSON.parse(xhr.responseText);if(xhr.status!==200)throw new Error(j.error);$(key+'-url').value=j.url;lbl.textContent='✅ '+j.name+' ('+(j.size/1024/1024).toFixed(2)+' MB)';showPreview(key,j.url);if(key==='vd')$('vd-link').value='';toast('Uploaded!');}catch(err){lbl.textContent='❌ '+err.message;toast(err.message,false);}setTimeout(()=>prog.style.display='none',600);};
-  xhr.onerror=()=>{lbl.textContent='❌ Upload failed';toast('Upload failed',false);};
+  xhr.onload=()=>{try{const j=JSON.parse(xhr.responseText);if(xhr.status!==200)throw new Error(j.error);$(key+'-url').value=j.url;lbl.textContent='✅ '+j.name+' ('+(j.size/1024/1024).toFixed(2)+' MB)';showPreview(key,j.url);if(key==='vd')$('vd-link').value='';toast('Uploaded!');}catch(err){lbl.textContent='❌ '+err.message;toast(err.message,false);}setTimeout(()=>prog.style.display='none',600);if(sb)sb.disabled=false;};
+  xhr.onerror=()=>{if(sb)sb.disabled=false;lbl.textContent='❌ Upload failed (network). Try again on Wi-Fi or use a YouTube link.';toast('Upload failed',false);};
+  xhr.ontimeout=()=>{lbl.textContent='❌ Upload timed out. Try a smaller file or YouTube link.';toast('Upload timed out',false);};
+  xhr.timeout=10*60*1000;
   xhr.send(fd);
 }
 function showPreview(key,url){url=/^\//.test(url)?withBase(url):url;
