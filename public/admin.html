@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel | Mahians Designs</title>
+<style>
+  :root{--bg1:#0b0f1f;--bg2:#151a3a;--accent:#7c5cff;--accent2:#ff5c9a;--accent3:#22d3ee;--glass:rgba(255,255,255,0.06);--glass-border:rgba(255,255,255,0.14);--text:#eef0ff;--muted:#a3a9c9;--ok:#22c55e;--danger:#ef4444;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;background:radial-gradient(1000px 700px at 10% 10%,#2a1f6b 0%,transparent 60%),radial-gradient(900px 600px at 90% 30%,#5a1a4a 0%,transparent 60%),linear-gradient(160deg,var(--bg1),var(--bg2));background-attachment:fixed;color:var(--text);min-height:100vh;}
+  .glass{background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:20px;box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.1);}
+  a{color:#c4b5ff;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;font-weight:600;font-size:13.5px;border:none;cursor:pointer;transition:transform .18s,box-shadow .18s;font-family:inherit;text-decoration:none;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 6px 18px rgba(124,92,255,.4);}
+  .btn-primary:hover{transform:translateY(-2px);}
+  .btn-ghost{background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--glass-border);}
+  .btn-danger{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.4);}
+  .btn-sm{padding:7px 12px;font-size:12px;border-radius:10px;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+  input,textarea,select{width:100%;background:rgba(0,0,0,.25);border:1px solid var(--glass-border);border-radius:12px;padding:11px 14px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border .18s;}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,92,255,.25);}
+  select option{background:#151a3a;}
+  textarea{resize:vertical;min-height:90px;}
+  label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
+  .field{margin-bottom:14px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+
+  /* LOGIN */
+  #login{min-height:100vh;display:grid;place-items:center;padding:20px;}
+  .login-card{width:min(400px,100%);padding:36px;}
+  .logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-weight:800;font-size:24px;margin:0 auto 14px;box-shadow:0 6px 20px rgba(124,92,255,.5);}
+  .login-card h1{text-align:center;font-size:22px;}
+  .login-card p{text-align:center;color:var(--muted);font-size:13px;margin:6px 0 24px;}
+  .err{color:#fca5a5;font-size:13px;text-align:center;min-height:18px;margin-top:10px;}
+
+  /* APP */
+  #app{display:none;grid-template-columns:240px 1fr;gap:22px;padding:22px;max-width:1400px;margin:0 auto;}
+  .side{position:sticky;top:22px;height:calc(100vh - 44px);padding:24px 16px;display:flex;flex-direction:column;}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:28px;padding:0 6px;}
+  .brand .logo{width:40px;height:40px;font-size:17px;margin:0;border-radius:12px;}
+  .brand b{display:block;font-size:15px;}
+  .brand span{font-size:10.5px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+  .nav a{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;margin-bottom:4px;cursor:pointer;transition:background .18s;border:1px solid transparent;}
+  .nav a:hover,.nav a.active{background:rgba(255,255,255,.08);color:#fff;border-color:var(--glass-border);}
+  .side .bottom{margin-top:auto;display:grid;gap:8px;}
+  main{min-width:0;}
+  .top{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;margin-bottom:22px;flex-wrap:wrap;gap:10px;}
+  .top h2{font-size:20px;}
+  .top small{color:var(--muted);font-size:12.5px;}
+  .page{display:none;}
+  .page.active{display:block;}
+  .card{padding:24px;margin-bottom:20px;}
+  .card h3{font-size:16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+  .card h3 .pill{font-size:10.5px;padding:3px 9px;border-radius:99px;background:rgba(124,92,255,.25);border:1px solid rgba(124,92,255,.5);color:#cfc6ff;letter-spacing:1px;text-transform:uppercase;}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+  .stat{padding:20px;}
+  .stat b{display:block;font-size:30px;font-weight:800;background:linear-gradient(135deg,#fff,#c4b5ff);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+
+  /* DROPZONE */
+  .drop{border:2px dashed rgba(255,255,255,.25);border-radius:16px;padding:26px;text-align:center;cursor:pointer;transition:.18s;background:rgba(0,0,0,.15);position:relative;}
+  .drop:hover,.drop.over{border-color:var(--accent);background:rgba(124,92,255,.1);}
+  .drop input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+  .drop .ic{font-size:30px;margin-bottom:6px;}
+  .drop p{font-size:13.5px;}
+  .drop small{color:var(--muted);font-size:12px;}
+  .preview{margin-top:12px;border-radius:14px;overflow:hidden;background:#000;display:none;max-height:260px;}
+  .preview img,.preview video{max-width:100%;max-height:260px;display:block;margin:0 auto;}
+  .progress{height:8px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;margin-top:10px;display:none;}
+  .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .15s;}
+  .pfile{font-size:12px;color:var(--muted);margin-top:8px;}
+
+  /* LISTS */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;}
+  .item{border-radius:16px;overflow:hidden;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);transition:transform .18s;}
+  .item:hover{transform:translateY(-3px);}
+  .item .th{aspect-ratio:16/9;background:#000 center/cover no-repeat;position:relative;display:grid;place-items:center;}
+  .item .th.port{aspect-ratio:9/16;max-height:280px;}
+  .item .th video{width:100%;height:100%;object-fit:cover;}
+  .item .th .tag{position:absolute;top:8px;left:8px;font-size:10px;padding:3px 8px;border-radius:99px;background:rgba(0,0,0,.6);border:1px solid var(--glass-border);}
+  .item .th .ratio{position:absolute;top:8px;right:8px;font-size:10px;padding:3px 8px;border-radius:8px;background:rgba(124,92,255,.6);font-weight:700;}
+  .item .bd{padding:12px;}
+  .item .bd b{display:block;font-size:13.5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .item .bd small{color:var(--muted);font-size:11.5px;}
+  .item .act{display:flex;gap:6px;margin-top:10px;}
+  .item .act .btn{flex:1;justify-content:center;}
+  .empty{padding:30px;text-align:center;color:var(--muted);font-size:14px;}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .chip{padding:7px 14px;border-radius:99px;font-size:12.5px;background:rgba(255,255,255,.06);border:1px solid var(--glass-border);color:var(--muted);cursor:pointer;}
+  .chip.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;}
+  .hint{font-size:12px;color:var(--muted);line-height:1.6;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.25);border-radius:12px;padding:12px 14px;margin-bottom:16px;}
+  .hint b{color:#7ee8fa;}
+  .avatar-prev{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);background:#1a1f45;display:block;margin-bottom:10px;}
+
+  /* toast */
+  #toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,80px);padding:12px 22px;border-radius:14px;font-size:14px;font-weight:600;z-index:999;transition:transform .25s;background:rgba(20,24,55,.95);border:1px solid var(--glass-border);box-shadow:0 10px 30px rgba(0,0,0,.5);}
+  #toast.show{transform:translate(-50%,0);}
+  #toast.ok{border-color:var(--ok);} #toast.bad{border-color:var(--danger);}
+
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(5,7,20,.75);backdrop-filter:blur(10px);display:none;place-items:center;padding:20px;z-index:100;}
+  .modal.open{display:grid;}
+  .mbox{width:min(560px,100%);padding:26px;max-height:90vh;overflow:auto;}
+  .mbox h3{font-size:18px;margin-bottom:16px;}
+  .menu-btn{display:none;}
+  @media(max-width:900px){
+    #app{grid-template-columns:1fr;padding:12px;}
+    .side{position:fixed;left:-260px;top:0;height:100vh;width:240px;z-index:50;border-radius:0 20px 20px 0;transition:left .25s;}
+    .side.open{left:0;}
+    .menu-btn{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid var(--glass-border);cursor:pointer;}
+    .stats{grid-template-columns:repeat(2,1fr);} .row3{grid-template-columns:1fr;} .row2{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <form class="login-card glass" onsubmit="doLogin(event)">
+    <div class="logo">M</div>
+    <h1>Mahians Designs</h1>
+    <p>Admin Panel — sign in to manage your portfolio</p>
+    <div class="field"><label>Username</label><input id="lu" autocomplete="username" required></div>
+    <div class="field"><label>Password</label><input id="lp" type="password" autocomplete="current-password" required></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" type="submit" id="loginBtn">Sign In →</button>
+    <div class="err" id="lerr"></div>
+    <div id="srvbox" style="display:none;margin-top:14px;padding:14px;border-radius:14px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.3)">
+      <label>Server URL (where <code>npm start</code> is running)</label>
+      <input id="srv" placeholder="http://localhost:8080" style="margin-bottom:10px">
+      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="saveServer()">Connect to server</button>
+    </div>
+  </form>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <aside class="side glass" id="side">
+    <div class="brand"><div class="logo">M</div><div><b>Mahians Designs</b><span>Admin Panel</span></div></div>
+    <div class="nav">
+      <a data-p="dash" class="active">📊 Dashboard</a>
+      <a data-p="photos">🖼️ Photos</a>
+      <a data-p="videos">🎬 Videos</a>
+      <a data-p="profile">👤 Profile & Intro</a>
+      <a data-p="contact">📞 Contact Links</a>
+    </div>
+    <div class="bottom">
+      <a href="/" target="_blank" class="btn btn-ghost btn-sm site-link" style="justify-content:center">🌐 View Website</a>
+      <button class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="top glass">
+      <div style="display:flex;align-items:center;gap:12px"><span class="menu-btn" onclick="document.getElementById('side').classList.toggle('open')">☰</span><div><h2 id="ptitle">Dashboard</h2><small>Manage your portfolio content</small></div></div>
+      <a href="/" target="_blank" class="btn btn-primary btn-sm site-link">Open Site ↗</a>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="p-dash">
+      <div class="stats">
+        <div class="stat glass"><b id="s-photos">0</b><span>Photos</span></div>
+        <div class="stat glass"><b id="s-videos">0</b><span>Videos</span></div>
+        <div class="stat glass"><b id="s-motion">0</b><span>Motion Graphics</span></div>
+        <div class="stat glass"><b id="s-edit">0</b><span>Video Edits</span></div>
+      </div>
+      <div class="card glass">
+        <h3>Quick Guide <span class="pill">How to use</span></h3>
+        <div class="hint">
+          <b>🖼️ Photos:</b> Upload your design images (JPG/PNG/WebP). Choose a category (Branding / Social / Print / UI). They show in the Portfolio section — 1 big on top, 2 side-by-side below, repeating.<br><br>
+          <b>🎬 Videos:</b> Upload an MP4 <i>or</i> paste a YouTube / Vimeo link. Pick the tab (Motion Graphics / Video Edit / Graphics Designs) and ratio. Each tab shows 16:9 on top and 9:16 pairs below.<br><br>
+          <b>👤 Profile:</b> Change your photo, name, intro text and stats.<br><br>
+          <b>📞 Contact:</b> Update WhatsApp, Discord and phone links used across the whole site.
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="go('photos')">+ Add Photo</button>
+          <button class="btn btn-primary" onclick="go('videos')">+ Add Video</button>
+          <button class="btn btn-ghost" onclick="go('profile')">Edit Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHOTOS -->
+    <div class="page" id="p-photos">
+      <div class="card glass">
+        <h3 id="ph-form-title">Add New Photo <span class="pill">Portfolio</span></h3>
+        <div class="row2">
+          <div>
+            <div class="drop" id="ph-drop">
+              <input type="file" accept="image/*" onchange="pickFile(this,'ph')">
+              <div class="ic">🖼️</div><p>Click or drag an image here</p><small>JPG, PNG, WebP, GIF, SVG</small>
+            </div>
+            <div class="progress" id="ph-prog"><i></i></div>
+            <div class="pfile" id="ph-file"></div>
+            <div class="preview" id="ph-prev"></div>
+          </div>
+          <div>
+            <div class="field"><label>Title *</label><input id="ph-title" placeholder="e.g. Aurora Tech Rebrand"></div>
+            <div class="field"><label>Subtitle</label><input id="ph-sub" placeholder="e.g. Logo & Identity"></div>
+            <div class="field"><label>Category *</label>
+              <select id="ph-cat"><option value="brand">Branding</option><option value="social">Social Media</option><option value="print">Print</option><option value="ui">UI / Web</option></select>
+            </div>
+            <input type="hidden" id="ph-url"><input type="hidden" id="ph-id">
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-primary" id="ph-save" onclick="savePhoto()">💾 Save Photo</button>
+              <button class="btn btn-ghost" onclick="resetForm('ph')">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card glass">
+        <h3>Your Photos <span class="pill" id="ph-count">0</span></h3>
+        <div class="filters" id="ph-filters">
+          <span class="chip active" data-c="all">All</span><span class="chip" data-c="brand">Branding</span><span class="chip" data-c="social">Social</span><span class="chip" data-c="print">Print</span><span class="chip" data-c="ui">UI / Web</span>
+        </div>
+        <div class="grid" id="ph-list"></div>
+      </div>
+    </div>
+
+    <!-- VIDEOS -->
+    <div class="page" id="p-videos">
+      <div class="card glass">
+        <h3 id="vd-form-title">Add New Video <span class="pill">Showcase</span></h3>
+        <div class="row2">
+          <div>
+            <label>Upload video file</label>
+            <div class="drop" id="vd-drop">
+              <input type="file" accept="video/mp4,video/webm,video/quicktime" onchange="pickFile(this,'vd')">
+              <div class="ic">🎬</div><p>Click or drag a video here</p><small>MP4 / WebM / MOV — up to 500MB</small>
+            </div>
+            <div class="progress" id="vd-prog"><i></i></div>
+            <div class="pfile" id="vd-file"></div>
+            <div class="preview" id="vd-prev"></div>
+            <div class="field" style="margin-top:14px"><label>— OR — paste YouTube / Vimeo / MP4 link</label><input id="vd-link" placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..." oninput="document.getElementById('vd-url').value=this.value"></div>
+            <label>Thumbnail (optional — image)</label>
+            <div class="drop" id="th-drop" style="padding:14px">
+              <input type="file" accept="image/*" onchange="pickFile(this,'th')">
+              <p style="font-size:12.5px">🖼️ Click to upload a custom thumbnail</p>
+            </div>
+            <div class="progress" id="th-prog"><i></i></div>
+            <div class="pfile" id="th-file"></div>
+            <div class="preview" id="th-prev"></div>
+          </div>
+          <div>
+            <div class="field"><label>Title *</label><input id="vd-title" placeholder="e.g. Logo Reveal Animation"></div>
+            <div class="row2">
+              <div class="field"><label>Tab / Category *</label>
+                <select id="vd-cat"><option value="motion">Motion Graphics</option><option value="edit">Video Edit</option><option value="design">Graphics Designs</option></select></div>
+              <div class="field"><label>Ratio *</label>
+                <select id="vd-ratio"><option value="16:9">16:9 (Landscape — top)</option><option value="9:16">9:16 (Portrait — pair)</option></select></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>Tool</label><input id="vd-tool" placeholder="After Effects"></div>
+              <div class="field"><label>Duration</label><input id="vd-dur" placeholder="0:30"></div>
+            </div>
+            <div class="field"><label>Description</label><textarea id="vd-desc" placeholder="Short description…"></textarea></div>
+            <input type="hidden" id="vd-url"><input type="hidden" id="th-url"><input type="hidden" id="vd-id">
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-primary" id="vd-save" onclick="saveVideo()">💾 Save Video</button>
+              <button class="btn btn-ghost" onclick="resetForm('vd')">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card glass">
+        <h3>Your Videos <span class="pill" id="vd-count">0</span></h3>
+        <div class="filters" id="vd-filters">
+          <span class="chip active" data-c="all">All</span><span class="chip" data-c="motion">Motion Graphics</span><span class="chip" data-c="edit">Video Edit</span><span class="chip" data-c="design">Graphics Designs</span>
+        </div>
+        <div class="grid" id="vd-list"></div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="page" id="p-profile">
+      <div class="card glass">
+        <h3>Profile & Intro <span class="pill">Hero section</span></h3>
+        <div class="row2">
+          <div>
+            <label>Profile Photo</label>
+            <img id="pf-photo-prev" class="avatar-prev" alt="">
+            <div class="drop" id="pf-drop" style="padding:14px"><input type="file" accept="image/*" onchange="pickFile(this,'pf')"><p style="font-size:12.5px">📷 Upload profile photo</p></div>
+            <div class="progress" id="pf-prog"><i></i></div><div class="pfile" id="pf-file"></div>
+            <input type="hidden" id="pf-url">
+          </div>
+          <div>
+            <div class="row2">
+              <div class="field"><label>Your Name</label><input id="pf-name"></div>
+              <div class="field"><label>Brand Name</label><input id="pf-brand"></div>
+            </div>
+            <div class="field"><label>Title / Location line</label><input id="pf-title"></div>
+            <div class="row3">
+              <div class="field"><label>Headline part 1</label><input id="pf-h1"></div>
+              <div class="field"><label>Headline (gradient)</label><input id="pf-h2"></div>
+              <div class="field"><label>Headline part 3</label><input id="pf-h3"></div>
+            </div>
+            <div class="field"><label>Bio / Intro text</label><textarea id="pf-bio"></textarea></div>
+            <div class="row3">
+              <div class="field"><label>Projects Done</label><input id="pf-projects" type="number"></div>
+              <div class="field"><label>Happy Clients</label><input id="pf-clients" type="number"></div>
+              <div class="field"><label>Years Experience</label><input id="pf-years" type="number"></div>
+            </div>
+            <button class="btn btn-primary" onclick="saveProfile()">💾 Save Profile</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="page" id="p-contact">
+      <div class="card glass">
+        <h3>Contact Links <span class="pill">Used site-wide</span></h3>
+        <div class="field"><label>💚 WhatsApp link</label><input id="ct-wa" placeholder="https://wa.me/..."></div>
+        <div class="field"><label>💜 Discord link</label><input id="ct-dc" placeholder="https://discord.com/users/..."></div>
+        <div class="field"><label>📞 Phone number (with country code)</label><input id="ct-ph" placeholder="+8801742678156"></div>
+        <button class="btn btn-primary" onclick="saveProfile()">💾 Save Contact Links</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal" id="confirm"><div class="mbox glass"><h3 id="cf-text">Delete?</h3><div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button><button class="btn btn-danger" id="cf-yes">Delete</button></div></div></div>
+<div id="toast"></div>
+
+<script>
+let DATA=null, phFilter='all', vdFilter='all';
+const $=id=>document.getElementById(id);
+let memTok='';
+const store={get(){try{return localStorage.getItem('md_token')||sessionStorage.getItem('md_token')||memTok;}catch{return memTok;}},set(v){memTok=v;try{localStorage.setItem('md_token',v);}catch{}try{sessionStorage.setItem('md_token',v);}catch{}},clear(){memTok='';try{localStorage.removeItem('md_token');}catch{}try{sessionStorage.removeItem('md_token');}catch{}}};
+const tok=()=>store.get()||'';
+let API_BASE='';try{API_BASE=localStorage.getItem('md_api')||'';}catch{}
+if(!API_BASE && location.protocol!=='file:' ) API_BASE='';
+const withBase=u=>(API_BASE?API_BASE.replace(/\/$/,''):'')+u;
+const api=(url,opt={})=>fetch(withBase(url),{...opt,credentials:'same-origin',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok(),...(opt.headers||{})}}).then(async r=>{const txt=await r.text();let j={};try{j=JSON.parse(txt);}catch{}if(r.status===405||r.status===404&&!j.error){throw new Error('WRONG_ORIGIN');}if(!r.ok)throw new Error(j.error||('HTTP '+r.status+' '+r.statusText));return j;}).catch(e=>{if(e instanceof TypeError)throw new Error('Cannot reach server ('+e.message+'). Open the admin panel from the LIVE site URL, e.g. https://your-site/admin');throw e;});
+function toast(msg,ok=true){const t=$('toast');t.textContent=msg;t.className='show '+(ok?'ok':'bad');setTimeout(()=>t.className='',2500);}
+
+// ---- AUTH ----
+async function doLogin(e){e.preventDefault();$('lerr').textContent='';const btn=e.target.querySelector('button');btn.disabled=true;btn.textContent='Signing in…';try{const r=await api('/api/login',{method:'POST',body:JSON.stringify({username:$('lu').value.trim(),password:$('lp').value})});if(r.token)store.set(r.token);await boot();}catch(err){console.error('login error',err);if(err.message==='WRONG_ORIGIN'||/Cannot reach/.test(err.message)){showServerBox();}else{$('lerr').textContent=(err&&err.message)?err.message:('Login failed: '+String(err));}}finally{btn.disabled=false;btn.textContent='Sign In →';}}
+async function logout(){try{await api('/api/logout',{method:'POST'});}catch{}store.clear();location.reload();}
+function showServerBox(){$('srvbox').style.display='block';$('srv').value=API_BASE||'';$('lerr').innerHTML='⚠️ This page is not being served by your Node server (HTTP 405).<br>Open <b>http://localhost:8080/admin</b> (or your live site URL + /admin), or enter the server URL below.';}
+function saveServer(){let v=$('srv').value.trim().replace(/\/(admin)?\/?$/,'');try{localStorage.setItem('md_api',v);}catch{}API_BASE=v;$('lerr').textContent='';$('srvbox').style.display='none';boot();}
+async function boot(){let me={loggedIn:false};try{me=await api('/api/me');}catch(e){if(e.message==='WRONG_ORIGIN'||/Cannot reach/.test(e.message))showServerBox();else $('lerr').textContent='Server not reachable: '+e.message;}if(!me.loggedIn){$('login').style.display='grid';$('app').style.display='none';return;}$('login').style.display='none';$('app').style.display='grid';await refresh();}
+async function refresh(){DATA=await api('/api/content');renderAll();}
+
+// ---- NAV ----
+document.querySelectorAll('.nav a[data-p]').forEach(a=>a.onclick=()=>go(a.dataset.p));
+function go(p){document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('active',a.dataset.p===p));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='p-'+p));$('ptitle').textContent={dash:'Dashboard',photos:'Photos',videos:'Videos',profile:'Profile & Intro',contact:'Contact Links'}[p];$('side').classList.remove('open');window.scrollTo(0,0);}
+
+// ---- UPLOAD ----
+function pickFile(input,key){const f=input.files[0];if(!f)return;uploadFile(f,key);}
+function uploadFile(file,key){
+  const prog=$(key+'-prog'),bar=prog.querySelector('i'),lbl=$(key+'-file');
+  prog.style.display='block';bar.style.width='0%';lbl.textContent='Uploading '+file.name+' …';
+  const fd=new FormData();fd.append('file',file);
+  const xhr=new XMLHttpRequest();xhr.open('POST',withBase('/api/upload'));xhr.setRequestHeader('Authorization','Bearer '+tok());
+  xhr.upload.onprogress=e=>{if(e.lengthComputable)bar.style.width=Math.round(e.loaded/e.total*100)+'%';};
+  xhr.onload=()=>{try{const j=JSON.parse(xhr.responseText);if(xhr.status!==200)throw new Error(j.error);$(key+'-url').value=j.url;lbl.textContent='✅ '+j.name+' ('+(j.size/1024/1024).toFixed(2)+' MB)';showPreview(key,j.url);if(key==='vd')$('vd-link').value='';toast('Uploaded!');}catch(err){lbl.textContent='❌ '+err.message;toast(err.message,false);}setTimeout(()=>prog.style.display='none',600);};
+  xhr.onerror=()=>{lbl.textContent='❌ Upload failed';toast('Upload failed',false);};
+  xhr.send(fd);
+}
+function showPreview(key,url){url=/^\//.test(url)?withBase(url):url;
+  if(key==='pf'){$('pf-photo-prev').src=url;return;}
+  if(key==='cv')return;
+  const p=$(key+'-prev');if(!p)return;p.style.display='block';
+  p.innerHTML=/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url)?`<video src="${url}" controls muted></video>`:`<img src="${url}">`;
+}
+// drag & drop
+document.querySelectorAll('.drop').forEach(d=>{
+  d.addEventListener('dragover',e=>{e.preventDefault();d.classList.add('over');});
+  d.addEventListener('dragleave',()=>d.classList.remove('over'));
+  d.addEventListener('drop',e=>{e.preventDefault();d.classList.remove('over');const inp=d.querySelector('input');if(e.dataTransfer.files[0]){inp.files=e.dataTransfer.files;inp.dispatchEvent(new Event('change'));}});
+});
+function resetForm(key){
+  if(key==='ph'){['ph-title','ph-sub','ph-url','ph-id','ph-file'].forEach(i=>$(i).value!==undefined?$(i).value='':$(i).textContent='');$('ph-file').textContent='';$('ph-prev').style.display='none';$('ph-form-title').innerHTML='Add New Photo <span class="pill">Portfolio</span>';$('ph-save').textContent='💾 Save Photo';}
+  if(key==='vd'){['vd-title','vd-tool','vd-dur','vd-desc','vd-url','vd-link','th-url','vd-id'].forEach(i=>$(i).value='');$('vd-file').textContent='';$('th-file').textContent='';$('vd-prev').style.display='none';$('th-prev').style.display='none';$('vd-form-title').innerHTML='Add New Video <span class="pill">Showcase</span>';$('vd-save').textContent='💾 Save Video';}
+}
+
+// ---- PHOTOS ----
+async function savePhoto(){
+  const body={title:$('ph-title').value.trim(),sub:$('ph-sub').value.trim(),category:$('ph-cat').value,image:$('ph-url').value};
+  if(!body.title)return toast('Title required',false);if(!body.image)return toast('Please upload an image',false);
+  const id=$('ph-id').value;
+  try{await api(id?'/api/photos/'+id:'/api/photos',{method:id?'PUT':'POST',body:JSON.stringify(body)});toast(id?'Photo updated':'Photo added!');resetForm('ph');refresh();}catch(e){toast(e.message,false);}
+}
+function editPhoto(id){const p=DATA.photos.find(x=>x.id===id);$('ph-id').value=id;$('ph-title').value=p.title;$('ph-sub').value=p.sub||'';$('ph-cat').value=p.category;$('ph-url').value=p.image;showPreview('ph',p.image);$('ph-file').textContent='Current image kept (upload to replace)';$('ph-form-title').innerHTML='Edit Photo <span class="pill">Editing</span>';$('ph-save').textContent='💾 Update Photo';window.scrollTo({top:0,behavior:'smooth'});}
+function delPhoto(id){confirmDel('Delete this photo?',async()=>{await api('/api/photos/'+id,{method:'DELETE'});toast('Deleted');refresh();});}
+async function movePhoto(id,dir){const ids=DATA.photos.map(p=>p.id);const i=ids.indexOf(id),j=i+dir;if(j<0||j>=ids.length)return;[ids[i],ids[j]]=[ids[j],ids[i]];await api('/api/photos/reorder',{method:'POST',body:JSON.stringify({ids})});refresh();}
+const CAT={brand:'Branding',social:'Social Media',print:'Print',ui:'UI / Web',motion:'Motion Graphics',edit:'Video Edit',design:'Graphics Designs'};
+function renderPhotos(){
+  const list=DATA.photos.filter(p=>phFilter==='all'||p.category===phFilter);
+  $('ph-count').textContent=DATA.photos.length;
+  $('ph-list').innerHTML=list.length?list.map((p,i)=>`<div class="item"><div class="th" style="background-image:url('${withBase(p.image)}')"><span class="tag">${CAT[p.category]||p.category}</span></div><div class="bd"><b>${esc(p.title)}</b><small>${esc(p.sub||'')}</small><div class="act"><button class="btn btn-ghost btn-sm" onclick="movePhoto('${p.id}',-1)">↑</button><button class="btn btn-ghost btn-sm" onclick="movePhoto('${p.id}',1)">↓</button><button class="btn btn-ghost btn-sm" onclick="editPhoto('${p.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="delPhoto('${p.id}')">✕</button></div></div></div>`).join(''):'<div class="empty" style="grid-column:1/-1">No photos yet. Add your first design above! 🎨</div>';
+}
+$('ph-filters').onclick=e=>{if(!e.target.dataset.c)return;phFilter=e.target.dataset.c;[...$('ph-filters').children].forEach(c=>c.classList.toggle('active',c===e.target));renderPhotos();};
+
+// ---- VIDEOS ----
+async function saveVideo(){
+  const body={title:$('vd-title').value.trim(),category:$('vd-cat').value,ratio:$('vd-ratio').value,tool:$('vd-tool').value.trim(),duration:$('vd-dur').value.trim(),desc:$('vd-desc').value.trim(),src:$('vd-url').value.trim()||$('vd-link').value.trim(),thumb:$('th-url').value};
+  if(!body.title)return toast('Title required',false);if(!body.src)return toast('Upload a video or paste a link',false);
+  const id=$('vd-id').value;
+  try{await api(id?'/api/videos/'+id:'/api/videos',{method:id?'PUT':'POST',body:JSON.stringify(body)});toast(id?'Video updated':'Video added!');resetForm('vd');refresh();}catch(e){toast(e.message,false);}
+}
+function editVideo(id){const v=DATA.videos.find(x=>x.id===id);$('vd-id').value=id;$('vd-title').value=v.title;$('vd-cat').value=v.category;$('vd-ratio').value=v.ratio;$('vd-tool').value=v.tool||'';$('vd-dur').value=v.duration||'';$('vd-desc').value=v.desc||'';$('th-url').value=v.thumb||'';if(v.src.startsWith('/uploads/')){$('vd-url').value=v.src;showPreview('vd',v.src);$('vd-file').textContent='Current video kept (upload to replace)';}else{$('vd-link').value=v.src;$('vd-url').value=v.src;}if(v.thumb)showPreview('th',v.thumb);$('vd-form-title').innerHTML='Edit Video <span class="pill">Editing</span>';$('vd-save').textContent='💾 Update Video';window.scrollTo({top:0,behavior:'smooth'});}
+function delVideo(id){confirmDel('Delete this video?',async()=>{await api('/api/videos/'+id,{method:'DELETE'});toast('Deleted');refresh();});}
+async function moveVideo(id,dir){const ids=DATA.videos.map(p=>p.id);const i=ids.indexOf(id),j=i+dir;if(j<0||j>=ids.length)return;[ids[i],ids[j]]=[ids[j],ids[i]];await api('/api/videos/reorder',{method:'POST',body:JSON.stringify({ids})});refresh();}
+function ytThumb(url){const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{11})/);return m?`https://img.youtube.com/vi/${m[1]}/hqdefault.jpg`:'';}
+function renderVideos(){
+  const list=DATA.videos.filter(v=>vdFilter==='all'||v.category===vdFilter);
+  $('vd-count').textContent=DATA.videos.length;
+  $('vd-list').innerHTML=list.length?list.map(v=>{const port=v.ratio==='9:16';const th=(v.thumb?withBase(v.thumb):'')||ytThumb(v.src);const inner=th?`style="background-image:url('${th}')"`:'';const vid=!th&&/\.(mp4|webm|mov)/i.test(v.src)?`<video src="${withBase(v.src)}" muted preload="metadata"></video>`:(!th?'<span style="font-size:30px">🎬</span>':'');return `<div class="item"><div class="th ${port?'port':''}" ${inner}>${vid}<span class="tag">${CAT[v.category]}</span><span class="ratio">${v.ratio}</span></div><div class="bd"><b>${esc(v.title)}</b><small>${esc(v.tool||'')} ${v.duration?'• '+esc(v.duration):''}</small><div class="act"><button class="btn btn-ghost btn-sm" onclick="moveVideo('${v.id}',-1)">↑</button><button class="btn btn-ghost btn-sm" onclick="moveVideo('${v.id}',1)">↓</button><button class="btn btn-ghost btn-sm" onclick="editVideo('${v.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="delVideo('${v.id}')">✕</button></div></div></div>`;}).join(''):'<div class="empty" style="grid-column:1/-1">No videos yet. Upload your first video above! 🎬</div>';
+}
+$('vd-filters').onclick=e=>{if(!e.target.dataset.c)return;vdFilter=e.target.dataset.c;[...$('vd-filters').children].forEach(c=>c.classList.toggle('active',c===e.target));renderVideos();};
+
+// ---- PROFILE / CONTACT ----
+function renderProfile(){const p=DATA.profile;$('pf-name').value=p.name;$('pf-brand').value=p.brand;$('pf-title').value=p.title;$('pf-h1').value=p.headline1;$('pf-h2').value=p.headline2;$('pf-h3').value=p.headline3;$('pf-bio').value=p.bio;$('pf-projects').value=p.stats.projects;$('pf-clients').value=p.stats.clients;$('pf-years').value=p.stats.years;$('pf-url').value=p.photo||'';$('pf-photo-prev').src=(p.photo?withBase(p.photo):'')||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90"><rect width="90" height="90" fill="%231a1f45"/><text x="45" y="58" text-anchor="middle" fill="white" font-size="36" font-weight="800" font-family="sans-serif">M</text></svg>';$('ct-wa').value=p.whatsapp;$('ct-dc').value=p.discord;$('ct-ph').value=p.phone;}
+async function saveProfile(){
+  const body={name:$('pf-name').value,brand:$('pf-brand').value,title:$('pf-title').value,headline1:$('pf-h1').value,headline2:$('pf-h2').value,headline3:$('pf-h3').value,bio:$('pf-bio').value,photo:$('pf-url').value,whatsapp:$('ct-wa').value,discord:$('ct-dc').value,phone:$('ct-ph').value,stats:{projects:+$('pf-projects').value||0,clients:+$('pf-clients').value||0,years:+$('pf-years').value||0}};
+  try{await api('/api/profile',{method:'PUT',body:JSON.stringify(body)});toast('Saved!');refresh();}catch(e){toast(e.message,false);}
+}
+
+// ---- MISC ----
+function renderAll(){document.querySelectorAll('.site-link').forEach(l=>l.href=withBase('/')||'/');$('s-photos').textContent=DATA.photos.length;$('s-videos').textContent=DATA.videos.length;$('s-motion').textContent=DATA.videos.filter(v=>v.category==='motion').length;$('s-edit').textContent=DATA.videos.filter(v=>v.category==='edit').length;renderPhotos();renderVideos();renderProfile();}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+let cfCb=null;function confirmDel(t,cb){$('cf-text').textContent=t;cfCb=cb;$('confirm').classList.add('open');}
+function closeConfirm(){$('confirm').classList.remove('open');cfCb=null;}
+$('cf-yes').onclick=async()=>{const cb=cfCb;closeConfirm();if(cb)await cb();};
+boot();
+</script>
+</body>
+</html>

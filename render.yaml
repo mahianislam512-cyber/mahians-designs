@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: mahians-designs
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: ADMIN_USER
+        value: mahian
+      - key: ADMIN_PASS
+        sync: false        # you set this in Render dashboard
+      - key: CLOUDINARY_URL
+        sync: false        # cloudinary://API_KEY:API_SECRET@CLOUD_NAME
