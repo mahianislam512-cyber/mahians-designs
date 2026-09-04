@@ -186,6 +186,7 @@
           <button class="btn btn-primary" onclick="go('photos')">+ Add Photo</button>
           <button class="btn btn-primary" onclick="go('videos')">+ Add Video</button>
           <button class="btn btn-ghost" onclick="go('profile')">Edit Profile</button>
+          <button class="btn btn-ghost" onclick="recoverCloud()" title="Re-scan Cloudinary and restore anything missing">♻️ Recover from Cloud</button>
         </div>
       </div>
     </div>
@@ -443,6 +444,7 @@ async function saveProfile(){
 }
 
 // ---- MISC ----
+async function recoverCloud(){toast('Scanning Cloudinary…');try{DATA=await api('/api/recover',{method:'POST'});renderAll();toast('Recovery done — '+DATA.photos.length+' photos, '+DATA.videos.length+' videos');}catch(e){toast(e.message,false);}}
 function renderAll(){document.querySelectorAll('.site-link').forEach(l=>l.href=withBase('/')||'/');$('s-photos').textContent=DATA.photos.length;$('s-videos').textContent=DATA.videos.length;$('s-motion').textContent=DATA.videos.filter(v=>v.category==='motion').length;$('s-edit').textContent=DATA.videos.filter(v=>v.category==='edit').length;renderPhotos();renderVideos();renderProfile();}
 function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 let cfCb=null;function confirmDel(t,cb){$('cf-text').textContent=t;cfCb=cb;$('confirm').classList.add('open');}

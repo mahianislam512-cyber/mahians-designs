@@ -52,8 +52,37 @@ function load() {
   try { return { ...DEFAULT, ...JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) }; }
   catch { return JSON.parse(JSON.stringify(DEFAULT)); }
 }
-function save(d) { fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2)); }
-if (!fs.existsSync(DATA_FILE)) save(DEFAULT);
+const CLOUD_BACKUP_ID = 'mahians-designs/_content-backup';
+let backupTimer = null;
+function save(d) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2));
+  if (USE_CLOUD) { clearTimeout(backupTimer); backupTimer = setTimeout(backupToCloud, 1500); }
+}
+async function backupToCloud() {
+  try {
+    const json = fs.readFileSync(DATA_FILE, 'utf8');
+    await cloudinary.uploader.upload('data:application/json;base64,' + Buffer.from(json).toString('base64'),
+      { public_id: CLOUD_BACKUP_ID, resource_type: 'raw', overwrite: true, invalidate: true });
+    console.log('[backup] content.json saved to Cloudinary');
+  } catch (e) { console.log('[backup] failed:', e.message); }
+}
+async function restoreFromCloud() {
+  if (!USE_CLOUD) return;
+  try {
+    const local = load();
+    const isEmpty = !local.photos.length && !local.videos.length;
+    if (!isEmpty) return;
+    const url = cloudinary.url(CLOUD_BACKUP_ID, { resource_type: 'raw', secure: true }) + '?t=' + Date.now();
+    const res = await fetch(url);
+    if (!res.ok) { console.log('[restore] no cloud backup yet'); return; }
+    const remote = await res.json();
+    if ((remote.photos && remote.photos.length) || (remote.videos && remote.videos.length)) {
+      fs.writeFileSync(DATA_FILE, JSON.stringify(remote, null, 2));
+      console.log(`[restore] restored ${remote.photos.length} photos, ${remote.videos.length} videos from Cloudinary`);
+    }
+  } catch (e) { console.log('[restore] failed:', e.message); }
+}
+if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify(DEFAULT, null, 2));
 
 // ---------- MIDDLEWARE ----------
 app.use((req, res, next) => {
@@ -198,6 +227,24 @@ app.get('/admin', (req, res) => res.sendFile(path.join(ROOT, 'public', 'admin.ht
 
 app.use((err, req, res, next) => res.status(400).json({ error: err.message }));
 
+async function syncCloudPhotos() {
+  if (!USE_CLOUD) return;
+  try {
+    const d = load(); const have = new Set([...d.photos.map(p => p.image), ...d.videos.map(v => v.src), ...d.videos.map(v => v.thumb), d.profile.photo]);
+    const r = await cloudinary.api.resources({ type: 'upload', prefix: 'mahians-designs/', resource_type: 'image', max_results: 500 });
+    let n = 0;
+    r.resources.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).forEach((x, i) => {
+      if (have.has(x.secure_url) || x.public_id === CLOUD_BACKUP_ID) return;
+      const ratio = x.width / x.height; const cat = ratio < 0.9 ? 'social' : (ratio > 1.6 ? 'ui' : 'brand');
+      d.photos.push({ id: crypto.randomUUID(), createdAt: new Date(x.created_at).getTime(), title: 'Untitled Design', sub: 'Recovered — edit in admin', category: cat, image: x.secure_url, recovered: true });
+      n++;
+    });
+    if (n) { save(d); console.log(`[sync] recovered ${n} photo(s) from Cloudinary that were missing in content`); }
+  } catch (e) { console.log('[sync] failed:', e.message); }
+}
+app.post('/api/recover', auth, async (req, res) => { await restoreFromCloud(); await syncCloudPhotos(); res.json(load()); });
+
+(async () => { await restoreFromCloud(); await syncCloudPhotos(); })();
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Mahians Designs running on http://0.0.0.0:${PORT}`);
   console.log(`Admin panel: http://0.0.0.0:${PORT}/admin  (user: ${ADMIN_USER})`);
