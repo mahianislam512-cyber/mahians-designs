@@ -96,7 +96,13 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
 app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '7d' }));
-app.use(express.static(path.join(ROOT, 'public'), { maxAge: 0 }));
+app.use((req, res, next) => {
+  if (/\.(html|js)$/.test(req.path) || req.path === '/' || req.path === '/admin' || req.path.startsWith('/api/')) {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0'); res.set('Pragma', 'no-cache'); res.set('Expires', '0');
+  }
+  next();
+});
+app.use(express.static(path.join(ROOT, 'public'), { maxAge: 0, etag: false, lastModified: false }));
 
 function getToken(req) {
   const h = req.headers.authorization || '';
