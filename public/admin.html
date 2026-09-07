@@ -120,6 +120,21 @@
   .social-row input{padding:8px 10px;font-size:13px;}
   .social-row .w{flex:1;min-width:0;}
   @media(max-width:700px){.social-grid{grid-template-columns:1fr;}}
+  .btabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .blist{display:grid;gap:10px;}
+  .brow{display:grid;gap:10px;align-items:center;padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--glass-border);}
+  .brow input,.brow textarea,.brow select{padding:9px 11px;font-size:13px;}
+  .brow textarea{min-height:56px;}
+  .brow .acts{display:flex;gap:6px;justify-content:flex-end;}
+  .brow .acts .btn{padding:6px 10px;font-size:12px;}
+  .badd{margin-top:12px;}
+  .cwrap{display:flex;align-items:center;gap:10px;}
+  .cwrap input[type=color]{width:44px;height:38px;padding:2px;border-radius:10px;cursor:pointer;}
+  .sw{width:14px;height:14px;border-radius:4px;display:inline-block;vertical-align:middle;margin-right:6px;}
+  .csec{padding:14px;border-radius:16px;background:rgba(124,92,255,.06);border:1px solid rgba(124,92,255,.3);margin-bottom:12px;}
+  .csec h4{font-size:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+  .tog{display:inline-flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;}
+  .tog input{width:auto;}
 </style>
 </head>
 <body>
@@ -153,6 +168,7 @@
       <a data-p="profile">👤 Profile & Intro</a>
       <a data-p="contact">📞 Contact Links</a>
       <a data-p="social">🌐 Social Media</a>
+      <a data-p="builder">🛠️ Site Builder</a>
     </div>
     <div class="bottom">
       <a href="/" target="_blank" class="btn btn-ghost btn-sm site-link" style="justify-content:center">🌐 View Website</a>
@@ -180,12 +196,13 @@
           <b>🖼️ Photos:</b> Upload your design images (JPG/PNG/WebP). Choose a category (Branding / Social Media / Gaming / Print / UI). For Social Media pick the platform (Facebook, YouTube, Instagram…), for Gaming pick the type (Logo, Banner, Thumbnail…). They show in the Portfolio section — 1 big on top, 2 side-by-side below, repeating.<br><br>
           <b>🎬 Videos:</b> Upload an MP4 <i>or</i> paste a YouTube / Vimeo link. Pick the tab (Motion Graphics / Video Edit / Graphics Designs) and ratio. Each tab shows 16:9 on top and 9:16 pairs below.<br><br>
           <b>👤 Profile:</b> Change your photo, name, intro text and stats.<br><br>
-          <b>📞 Contact:</b> Update WhatsApp, Discord and phone links used across the whole site.<br><br><b>🌐 Social Media:</b> Add YouTube, Instagram, Facebook, TikTok, Behance, Dribbble, LinkedIn, Fiverr and more — shown on your profile card, video section, contact and footer.
+          <b>📞 Contact:</b> Update WhatsApp, Discord and phone links used across the whole site.<br><br><b>🌐 Social Media:</b> Add YouTube, Instagram, Facebook, TikTok, Behance, Dribbble, LinkedIn, Fiverr and more — shown on your profile card, video section, contact and footer.<br><br><b>🛠️ Site Builder:</b> Full control — add/remove categories, video tabs, services, skills, tools, reviews, change colors, rename or hide sections, and create brand-new sections.
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn btn-primary" onclick="go('photos')">+ Add Photo</button>
           <button class="btn btn-primary" onclick="go('videos')">+ Add Video</button>
           <button class="btn btn-ghost" onclick="go('profile')">Edit Profile</button>
+          <button class="btn btn-ghost" onclick="go('builder')">🛠️ Site Builder</button>
           <button class="btn btn-ghost" onclick="recoverCloud()" title="Re-scan Cloudinary and restore anything missing">♻️ Recover from Cloud</button>
         </div>
       </div>
@@ -326,6 +343,23 @@
       </div>
     </div>
 
+    <!-- SITE BUILDER -->
+    <div class="page" id="p-builder">
+      <div class="card glass">
+        <h3>🛠️ Site Builder <span class="pill">Full control</span></h3>
+        <div class="hint">Add, edit, reorder or remove anything on your website — categories, video tabs, services, skills, tools, process steps, reviews, colors, section titles, and even brand-new sections. Changes go live the moment you click <b>Save & Publish</b>.</div>
+        <div class="btabs" id="btabs">
+          <span class="chip active" data-b="theme">🎨 Colors</span><span class="chip" data-b="sections">📑 Sections</span><span class="chip" data-b="categories">🖼️ Photo Categories</span><span class="chip" data-b="videoTabs">🎬 Video Tabs</span><span class="chip" data-b="services">💠 Services</span><span class="chip" data-b="skills">⭐ Skills</span><span class="chip" data-b="tools">🧰 Tools</span><span class="chip" data-b="process">🔁 Process</span><span class="chip" data-b="testimonials">💬 Reviews</span><span class="chip" data-b="custom">➕ New Sections</span>
+        </div>
+        <div id="bpanel"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--glass-border)">
+          <button class="btn btn-primary" onclick="saveSite()">🚀 Save & Publish</button>
+          <a href="/" target="_blank" class="btn btn-ghost site-link">Preview site ↗</a>
+          <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="resetSite()">Reset to defaults</button>
+        </div>
+      </div>
+    </div>
+
     <!-- CONTACT -->
     <div class="page" id="p-contact">
       <div class="card glass">
@@ -367,7 +401,7 @@ async function refresh(){DATA=await api('/api/content');renderAll();}
 
 // ---- NAV ----
 document.querySelectorAll('.nav a[data-p]').forEach(a=>a.onclick=()=>go(a.dataset.p));
-function go(p){document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('active',a.dataset.p===p));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='p-'+p));$('ptitle').textContent={dash:'Dashboard',photos:'Photos',videos:'Videos',profile:'Profile & Intro',contact:'Contact Links',social:'Social Media'}[p];$('side').classList.remove('open');window.scrollTo(0,0);}
+function go(p){if(p==='builder'){SITE=null;setTimeout(renderBuilder,0);}document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('active',a.dataset.p===p));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='p-'+p));$('ptitle').textContent={dash:'Dashboard',photos:'Photos',videos:'Videos',profile:'Profile & Intro',contact:'Contact Links',social:'Social Media',builder:'Site Builder — Full Control'}[p];$('side').classList.remove('open');window.scrollTo(0,0);}
 
 // ---- UPLOAD ----
 function pickFile(input,key){const f=input.files[0];if(!f)return;const MB=f.size/1024/1024;if(key==='vd'&&MB>100){toast('Video is '+MB.toFixed(0)+'MB — max 100MB. Compress it or use a YouTube link.',false);$('vd-file').textContent='❌ Too large ('+MB.toFixed(0)+'MB). Max 100MB — or paste a YouTube link below.';input.value='';return;}uploadFile(f,key);}
@@ -457,9 +491,76 @@ async function saveProfile(){
   try{await api('/api/profile',{method:'PUT',body:JSON.stringify(body)});toast('Saved!');refresh();}catch(e){toast(e.message,false);}
 }
 
+// ---- SITE BUILDER ----
+let SITE=null, btab='theme';
+const emojiHint='Emoji (e.g. 🎮)';
+$('btabs').onclick=e=>{if(!e.target.dataset.b)return;btab=e.target.dataset.b;[...$('btabs').children].forEach(c=>c.classList.toggle('active',c===e.target));renderBuilder();};
+function ensureSite(){if(!SITE)SITE=JSON.parse(JSON.stringify(DATA.site||{}));return SITE;}
+function bsync(){ // read all inputs of current panel back into SITE
+  document.querySelectorAll('#bpanel [data-path]').forEach(el=>{
+    const path=el.dataset.path.split('.');let o=SITE;for(let i=0;i<path.length-1;i++){o=o[isNaN(path[i])?path[i]:+path[i]];}
+    const k=path[path.length-1];o[isNaN(k)?k:+k]=el.type==='checkbox'?el.checked:(el.type==='number'?+el.value:el.value);
+  });
+}
+function listRow(arr,i,fields,base){
+  const cols=fields.map(f=>f.w||'1fr').join(' ')+' auto';
+  return `<div class="brow" style="grid-template-columns:${cols}">${fields.map(f=>f.type==='textarea'?`<textarea data-path="${base}.${i}.${f.k}" placeholder="${f.ph||''}">${esc(arr[i][f.k]||'')}</textarea>`:f.type==='color'?`<div class="cwrap"><input type="color" data-path="${base}.${i}.${f.k}" value="${arr[i][f.k]||'#7c5cff'}"></div>`:`<input type="${f.type||'text'}" data-path="${base}.${i}.${f.k}" placeholder="${f.ph||''}" value="${esc(arr[i][f.k]??'')}" ${f.min!==undefined?`min="${f.min}" max="${f.max}"`:''}>`).join('')}
+  <div class="acts"><button class="btn btn-ghost" onclick="bmove('${base}',${i},-1)">↑</button><button class="btn btn-ghost" onclick="bmove('${base}',${i},1)">↓</button><button class="btn btn-danger" onclick="bdel('${base}',${i})">✕</button></div></div>`;
+}
+function getArr(base){return base.split('.').reduce((o,k)=>o[isNaN(k)?k:+k],SITE);}
+function bmove(base,i,d){bsync();const arr=getArr(base);const j=i+d;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];renderBuilder();}
+function bdel(base,i){bsync();getArr(base).splice(i,1);renderBuilder();}
+function badd(base,tpl){bsync();getArr(base).push(JSON.parse(tpl));renderBuilder();}
+function renderBuilder(){
+  const S=ensureSite();const P=$('bpanel');
+  const head=(t,d)=>`<div style="margin-bottom:12px"><b style="font-size:15px">${t}</b><div style="font-size:12.5px;color:var(--muted);margin-top:3px">${d}</div></div>`;
+  const addBtn=(base,tpl,label)=>`<button class="btn btn-ghost btn-sm badd" onclick='badd("${base}",${JSON.stringify(JSON.stringify(tpl))})'>+ ${label}</button>`;
+  if(btab==='theme'){S.theme=S.theme||{};P.innerHTML=head('Brand colors','Pick your accent colors. Used in buttons, gradients, highlights, glow.')+
+    `<div class="row3"><div class="field"><label>Primary accent</label><div class="cwrap"><input type="color" data-path="theme.accent" value="${S.theme.accent||'#7c5cff'}"><span>${S.theme.accent||'#7c5cff'}</span></div></div>
+    <div class="field"><label>Secondary accent</label><div class="cwrap"><input type="color" data-path="theme.accent2" value="${S.theme.accent2||'#ff5c9a'}"><span>${S.theme.accent2||'#ff5c9a'}</span></div></div>
+    <div class="field"><label>Third accent</label><div class="cwrap"><input type="color" data-path="theme.accent3" value="${S.theme.accent3||'#22d3ee'}"><span>${S.theme.accent3||'#22d3ee'}</span></div></div></div>`;}
+  else if(btab==='sections'){S.sections=S.sections||{};const names={services:'Services',portfolio:'Portfolio (Photos)',videos:'Video Showcase',skills:'Skills & Tools',process:'My Process',testimonials:'Client Reviews',contact:'Contact'};
+    P.innerHTML=head('Sections','Show / hide any section and rename its title & small label.')+'<div class="blist">'+Object.keys(names).map(k=>{const c=S.sections[k]=S.sections[k]||{visible:true};return `<div class="brow" style="grid-template-columns:auto 1fr 1fr 1fr"><label class="tog"><input type="checkbox" data-path="sections.${k}.visible" ${c.visible!==false?'checked':''}> Show</label><b style="font-size:13px">${names[k]}</b><input data-path="sections.${k}.title" placeholder="Title" value="${esc(c.title||'')}"><input data-path="sections.${k}.pill" placeholder="Small label" value="${esc(c.pill||'')}"></div>`;}).join('')+'</div>';}
+  else if(btab==='categories'){S.categories=S.categories||[];P.innerHTML=head('Photo categories','Add any category (e.g. "Gaming", "Wedding", "T-Shirt"). Sub-options are comma separated (e.g. "Facebook, YouTube, Instagram") — they become the second filter row on the site. Key is auto-generated; leave it.')+
+    '<div class="blist">'+S.categories.map((c,i)=>listRow(S.categories,i,[{k:'name',ph:'Category name',w:'1fr'},{k:'subs',ph:'Sub-options, comma separated (optional)',w:'2fr'},{k:'key',ph:'key',w:'90px'}],'categories')).join('')+'</div>'+addBtn('categories',{name:'',subs:'',key:''},'Add category');}
+  else if(btab==='videoTabs'){S.videoTabs=S.videoTabs||[];P.innerHTML=head('Video tabs','Tabs shown in the Video Showcase (e.g. add "Gaming Edits", "Reels").')+
+    '<div class="blist">'+S.videoTabs.map((c,i)=>listRow(S.videoTabs,i,[{k:'emoji',ph:emojiHint,w:'90px'},{k:'name',ph:'Tab name',w:'1fr'},{k:'key',ph:'key',w:'110px'}],'videoTabs')).join('')+'</div>'+addBtn('videoTabs',{emoji:'',name:'',key:''},'Add video tab');}
+  else if(btab==='services'){S.services=S.services||[];P.innerHTML=head('Services','The "What I do" cubes.')+
+    '<div class="blist">'+S.services.map((c,i)=>listRow(S.services,i,[{k:'emoji',ph:emojiHint,w:'90px'},{k:'title',ph:'Service title',w:'1fr'},{k:'desc',ph:'Short description',w:'2fr'}],'services')).join('')+'</div>'+addBtn('services',{emoji:'',title:'',desc:''},'Add service');}
+  else if(btab==='skills'){S.skills=S.skills||[];P.innerHTML=head('Skills','Progress bars with percentage.')+
+    '<div class="blist">'+S.skills.map((c,i)=>listRow(S.skills,i,[{k:'name',ph:'Skill name',w:'2fr'},{k:'percent',type:'number',ph:'%',w:'90px',min:0,max:100}],'skills')).join('')+'</div>'+addBtn('skills',{name:'',percent:80},'Add skill');}
+  else if(btab==='tools'){S.tools=S.tools||[];P.innerHTML=head('Tools / Software','Badges like Ps, Ai, Figma. Abbr = 2 letters on the badge.')+
+    '<div class="blist">'+S.tools.map((c,i)=>listRow(S.tools,i,[{k:'abbr',ph:'Ps',w:'70px'},{k:'name',ph:'Tool name',w:'1fr'},{k:'color',type:'color',w:'70px'}],'tools')).join('')+'</div>'+addBtn('tools',{abbr:'',name:'',color:'#7c5cff'},'Add tool');}
+  else if(btab==='process'){S.process=S.process||[];P.innerHTML=head('Process steps','How you work — shown as numbered steps.')+
+    '<div class="blist">'+S.process.map((c,i)=>listRow(S.process,i,[{k:'emoji',ph:emojiHint,w:'90px'},{k:'title',ph:'Step title',w:'1fr'},{k:'desc',type:'textarea',ph:'Description',w:'2fr'}],'process')).join('')+'</div>'+addBtn('process',{emoji:'',title:'',desc:''},'Add step');}
+  else if(btab==='testimonials'){S.testimonials=S.testimonials||[];P.innerHTML=head('Client reviews','Real client feedback builds trust.')+
+    '<div class="blist">'+S.testimonials.map((c,i)=>listRow(S.testimonials,i,[{k:'name',ph:'Client name',w:'1fr'},{k:'role',ph:'Role / Company',w:'1fr'},{k:'stars',type:'number',ph:'5',w:'70px',min:1,max:5},{k:'text',type:'textarea',ph:'Review text',w:'2fr'}],'testimonials')).join('')+'</div>'+addBtn('testimonials',{name:'',role:'',stars:5,text:''},'Add review');}
+  else if(btab==='custom'){S.customSections=S.customSections||[];
+    P.innerHTML=head('New sections','Create brand-new sections on your website (e.g. "Pricing", "Awards", "Courses", "FAQ", "Gaming Setup"). Each gets its own menu link. Items are optional cards; a link makes the card clickable.')+
+    S.customSections.map((cs,i)=>{cs.items=cs.items||[];return `<div class="csec"><h4><span>Section ${i+1}</span><span><button class="btn btn-ghost btn-sm" onclick="bmove('customSections',${i},-1)">↑</button> <button class="btn btn-ghost btn-sm" onclick="bmove('customSections',${i},1)">↓</button> <button class="btn btn-danger btn-sm" onclick="bdel('customSections',${i})">Remove section</button></span></h4>
+      <div class="row3"><div class="field"><label>Section title *</label><input data-path="customSections.${i}.title" value="${esc(cs.title||'')}" placeholder="e.g. Pricing"></div><div class="field"><label>Small label</label><input data-path="customSections.${i}.pill" value="${esc(cs.pill||'')}" placeholder="e.g. Packages"></div><div class="field"><label>Key (auto)</label><input data-path="customSections.${i}.key" value="${esc(cs.key||'')}" placeholder="auto"></div></div>
+      <div class="field"><label>Intro text (optional)</label><textarea data-path="customSections.${i}.intro" placeholder="A short paragraph shown at the top of this section">${esc(cs.intro||'')}</textarea></div>
+      <label>Cards / items</label><div class="blist">${cs.items.map((it,j)=>listRow(cs.items,j,[{k:'emoji',ph:emojiHint,w:'80px'},{k:'title',ph:'Card title',w:'1fr'},{k:'desc',ph:'Description',w:'2fr'},{k:'link',ph:'Link (optional)',w:'1fr'}],`customSections.${i}.items`)).join('')}</div>${addBtn(`customSections.${i}.items`,{emoji:'',title:'',desc:'',link:''},'Add card')}</div>`;}).join('')+addBtn('customSections',{title:'',pill:'',key:'',intro:'',items:[]},'Create new section');}
+}
+async function saveSite(){bsync();
+  // auto keys
+  const slug=t=>String(t||'').toLowerCase().replace(/\(.*?\)/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  (SITE.categories||[]).forEach(c=>{if(!c.key)c.key=slug(c.name);});(SITE.videoTabs||[]).forEach(c=>{if(!c.key)c.key=slug(c.name);});(SITE.customSections||[]).forEach(c=>{if(!c.key)c.key=slug(c.title);});
+  SITE.categories=(SITE.categories||[]).filter(c=>c.name);SITE.videoTabs=(SITE.videoTabs||[]).filter(c=>c.name);SITE.customSections=(SITE.customSections||[]).filter(c=>c.title);
+  try{DATA.site=await api('/api/site',{method:'PUT',body:JSON.stringify(SITE)});SITE=null;toast('Published! Refresh your website to see it.');renderBuilder();syncCatsFromSite();}catch(e){toast(e.message,false);}
+}
+async function resetSite(){if(!confirm('Reset ALL Site Builder changes to defaults?'))return;try{DATA.site=await api('/api/site/reset',{method:'POST'});SITE=null;toast('Reset done');renderBuilder();syncCatsFromSite();}catch(e){toast(e.message,false);}}
+function syncCatsFromSite(){ // keep Photos page category dropdown + Videos tab dropdown in sync with builder
+  const slug=t=>String(t||'').toLowerCase().replace(/\(.*?\)/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const site=DATA.site||{};
+  if(site.categories&&site.categories.length){window.PHOTO_CATEGORIES=site.categories.map(c=>{const subs=(c.subs||'').split(',').map(x=>x.trim()).filter(Boolean).map(x=>({key:slug(x),name:x}));return subs.length?{key:c.key||slug(c.name),name:c.name,subs}:{key:c.key||slug(c.name),name:c.name};});initCats();}
+  if(site.videoTabs&&site.videoTabs.length){$('vd-cat').innerHTML=site.videoTabs.map(t=>`<option value="${t.key||slug(t.name)}">${t.name}</option>`).join('');$('vd-filters').innerHTML='<span class="chip active" data-c="all">All</span>'+site.videoTabs.map(t=>`<span class="chip" data-c="${t.key||slug(t.name)}">${t.name}</span>`).join('');site.videoTabs.forEach(t=>CAT[t.key||slug(t.name)]=t.name);}
+  (site.categories||[]).forEach(c=>CAT[c.key]=c.name);
+}
+
 // ---- MISC ----
 async function recoverCloud(){toast('Scanning Cloudinary…');try{DATA=await api('/api/recover',{method:'POST'});renderAll();toast('Recovery done — '+DATA.photos.length+' photos, '+DATA.videos.length+' videos');}catch(e){toast(e.message,false);}}
-function renderAll(){document.querySelectorAll('.site-link').forEach(l=>l.href=withBase('/')||'/');$('s-photos').textContent=DATA.photos.length;$('s-videos').textContent=DATA.videos.length;$('s-motion').textContent=DATA.videos.filter(v=>v.category==='motion').length;$('s-edit').textContent=DATA.videos.filter(v=>v.category==='edit').length;renderPhotos();renderVideos();renderProfile();}
+function renderAll(){document.querySelectorAll('.site-link').forEach(l=>l.href=withBase('/')||'/');syncCatsFromSite();if(document.getElementById('p-builder').classList.contains('active'))renderBuilder();$('s-photos').textContent=DATA.photos.length;$('s-videos').textContent=DATA.videos.length;$('s-motion').textContent=DATA.videos.filter(v=>v.category==='motion').length;$('s-edit').textContent=DATA.videos.filter(v=>v.category==='edit').length;renderPhotos();renderVideos();renderProfile();}
 function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 let cfCb=null;function confirmDel(t,cb){$('cf-text').textContent=t;cfCb=cb;$('confirm').classList.add('open');}
 function closeConfirm(){$('confirm').classList.remove('open');cfCb=null;}

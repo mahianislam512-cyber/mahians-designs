@@ -45,8 +45,62 @@ const DEFAULT = {
     stats: { projects: 150, clients: 112, years: 4 },
     socials: {}
   },
+  site: null,   // customizable site structure (null = use DEFAULT_SITE)
   photos: [],   // {id,title,category,sub,image,createdAt}
   videos: []    // {id,title,category(motion|edit|design),ratio(16:9|9:16),tool,duration,desc,src,thumb,createdAt}
+};
+const DEFAULT_SITE = {
+  theme: { accent: '#7c5cff', accent2: '#ff5c9a', accent3: '#22d3ee' },
+  categories: [
+    { key:'brand', name:'Branding', subs:'' },
+    { key:'social', name:'Social Media', subs:'Facebook, YouTube, Instagram, TikTok, LinkedIn, X (Twitter), Pinterest, WhatsApp, Other' },
+    { key:'gaming', name:'Gaming', subs:'Gaming Logo / Mascot, Banner / Header, Stream Thumbnail, Stream Overlay, Tournament Poster, Emotes / Badges, Other' },
+    { key:'print', name:'Print', subs:'' },
+    { key:'ui', name:'UI / Web', subs:'' }
+  ],
+  videoTabs: [
+    { key:'motion', name:'Motion Graphics', emoji:'✨' },
+    { key:'edit', name:'Video Edit', emoji:'✂️' },
+    { key:'design', name:'Graphics Designs', emoji:'🎨' }
+  ],
+  services: [
+    { emoji:'💠', title:'Brand Identity', desc:'Logo, colors & brand guidelines.' },
+    { emoji:'📱', title:'Social Media Design', desc:'Posts, stories, banners & ads.' },
+    { emoji:'🖥️', title:'UI / Web Graphics', desc:'Hero banners, icons & web visuals.' },
+    { emoji:'🖨️', title:'Print Design', desc:'Cards, flyers, posters & packaging.' },
+    { emoji:'✏️', title:'Illustration', desc:'Custom art, mascots & characters.' },
+    { emoji:'🎬', title:'Thumbnail & Motion', desc:'YouTube thumbnails & motion posts.' }
+  ],
+  skills: [
+    { name:'Logo & Brand Identity', percent:95 }, { name:'Social Media Design', percent:92 }, { name:'Typography & Layout', percent:88 },
+    { name:'UI / Web Graphics', percent:85 }, { name:'Illustration', percent:80 }, { name:'Motion Graphics', percent:70 }
+  ],
+  tools: [
+    { abbr:'Ps', name:'Photoshop', color:'#31a8ff' }, { abbr:'Ai', name:'Illustrator', color:'#ff9a00' }, { abbr:'Id', name:'InDesign', color:'#ff3366' },
+    { abbr:'Fg', name:'Figma', color:'#f24e1e' }, { abbr:'Ae', name:'After Effects', color:'#9999ff' }, { abbr:'Cv', name:'Canva', color:'#00c4cc' },
+    { abbr:'Xd', name:'Adobe XD', color:'#ff61f6' }, { abbr:'Pr', name:'Premiere', color:'#9999ff' }, { abbr:'Bl', name:'Blender', color:'#e5e7eb' }
+  ],
+  process: [
+    { emoji:'🔍', title:'Discover', desc:'Understanding your brand, audience and goals through a detailed brief.' },
+    { emoji:'✏️', title:'Sketch', desc:'Exploring concepts, moodboards and rough directions before refining.' },
+    { emoji:'🎨', title:'Design', desc:'Crafting pixel-perfect visuals with attention to every detail.' },
+    { emoji:'🚀', title:'Deliver', desc:'Revisions, final files in all formats, and ongoing support.' }
+  ],
+  testimonials: [
+    { name:'Rafiq Ahmed', role:'CEO, Aurora Tech', text:'Mahian completely transformed our brand. The logo and identity system exceeded every expectation. Fast, professional and incredibly creative.', stars:5 },
+    { name:'Sadia Nawar', role:'Marketing Lead, Trendy BD', text:'Our social media engagement doubled after switching to Mahians Designs. The creatives are clean, bold and always on time.', stars:5 },
+    { name:'James Kim', role:'Content Creator', text:'Excellent communication and top-tier design quality. The YouTube thumbnails boosted my click-through rate by 40%. Highly recommended!', stars:5 }
+  ],
+  sections: {
+    services: { visible:true, title:'Services', pill:'What I do' },
+    portfolio: { visible:true, title:'Featured Work', pill:'Portfolio' },
+    videos: { visible:true, title:'Video Showcase', pill:'Videos' },
+    skills: { visible:true, title:'Skills & Tools', pill:'Expertise' },
+    process: { visible:true, title:'My Process', pill:'How I work' },
+    testimonials: { visible:true, title:'Client Reviews', pill:'Testimonials' },
+    contact: { visible:true, title:"Let's Work Together", pill:'Contact' }
+  },
+  customSections: [] // { key, title, pill, intro, items:[{emoji,title,desc,link}] }
 };
 function load() {
   try { return { ...DEFAULT, ...JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) }; }
@@ -139,7 +193,10 @@ const upload = multer({
 
 // ---------- PUBLIC API ----------
 app.get('/health', (req, res) => res.json({ ok: true, cloud: USE_CLOUD }));
-app.get('/api/content', (req, res) => res.json(load()));
+app.get('/api/content', (req, res) => { const d = load(); if (!d.site) d.site = DEFAULT_SITE; res.json(d); });
+app.get('/api/site/defaults', (req, res) => res.json(DEFAULT_SITE));
+app.put('/api/site', auth, (req, res) => { const d = load(); d.site = { ...DEFAULT_SITE, ...(d.site || {}), ...req.body }; save(d); res.json(d.site); });
+app.post('/api/site/reset', auth, (req, res) => { const d = load(); d.site = null; save(d); res.json(DEFAULT_SITE); });
 
 // ---------- AUTH ----------
 app.post('/api/login', (req, res) => {
