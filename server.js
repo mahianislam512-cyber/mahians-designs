@@ -6,7 +6,9 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const cloudinary = require('cloudinary').v2;
-const USE_CLOUD = !!process.env.CLOUDINARY_URL;
+const USE_CLOUD = !!process.env.CLOUDINARY_URL;                 // media uploads -> Cloudinary
+const CLOUD_SYNC = USE_CLOUD && (process.env.RENDER === 'true' || process.env.CLOUD_SYNC === '1'); // content backup/restore ONLY on production
+const ORIGIN = process.env.RENDER_SERVICE_ID || process.env.RENDER || (process.env.CLOUD_SYNC === '1' ? 'manual' : 'dev');
 if (USE_CLOUD) cloudinary.config({ secure: true });
 
 const app = express();
@@ -110,16 +112,17 @@ const CLOUD_BACKUP_ID = 'mahians-designs/_content-backup';
 let backupTimer = null;
 function save(d) {
   d.updatedAt = Date.now();
+  d.origin = String(ORIGIN);
   fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2));
-  if (USE_CLOUD) { clearTimeout(backupTimer); backupTimer = setTimeout(backupToCloud, 1500); }
+  if (CLOUD_SYNC) { clearTimeout(backupTimer); backupTimer = setTimeout(backupToCloud, 300); }
 }
-process.on('SIGTERM', async () => { clearTimeout(backupTimer); await backupToCloud(); process.exit(0); });
 async function backupToCloud() {
+  if (!CLOUD_SYNC) return;
   try {
     const json = fs.readFileSync(DATA_FILE, 'utf8');
     await cloudinary.uploader.upload('data:application/json;base64,' + Buffer.from(json).toString('base64'),
       { public_id: CLOUD_BACKUP_ID, resource_type: 'raw', overwrite: true, invalidate: true });
-    console.log('[backup] content.json saved to Cloudinary');
+    console.log('[backup] content.json saved to Cloudinary (' + new Date().toISOString() + ')');
   } catch (e) { console.log('[backup] failed:', e.message); }
 }
 async function fetchCloudBackup() {
@@ -131,10 +134,11 @@ async function fetchCloudBackup() {
   return await res.json();
 }
 async function restoreFromCloud() {
-  if (!USE_CLOUD) return;
+  if (!CLOUD_SYNC) return;
   try {
     const local = load();
     const remote = await fetchCloudBackup();
+    if (remote.origin === 'dev') { console.log('[restore] ignoring dev-origin backup'); return; }
     const localEmpty = !local.photos.length && !local.videos.length;
     const remoteNewer = (remote.updatedAt || 0) > (local.updatedAt || 0);
     if (localEmpty || remoteNewer) {
@@ -192,7 +196,7 @@ const upload = multer({
 });
 
 // ---------- PUBLIC API ----------
-app.get('/health', (req, res) => res.json({ ok: true, cloud: USE_CLOUD }));
+app.get('/health', (req, res) => { const d = load(); res.json({ ok: true, cloud: USE_CLOUD, sync: CLOUD_SYNC, origin: ORIGIN, photos: d.photos.length, videos: d.videos.length, updatedAt: d.updatedAt }); });
 app.get('/api/content', (req, res) => { const d = load(); if (!d.site) d.site = DEFAULT_SITE; res.json(d); });
 app.get('/api/site/defaults', (req, res) => res.json(DEFAULT_SITE));
 app.put('/api/site', auth, (req, res) => { const d = load(); d.site = { ...DEFAULT_SITE, ...(d.site || {}), ...req.body }; save(d); res.json(d.site); });
@@ -335,7 +339,13 @@ async function syncCloudPhotos() {
 }
 app.post('/api/recover', auth, async (req, res) => { await restoreFromCloud(); await syncCloudPhotos(); res.json(load()); });
 
-(async () => { await restoreFromCloud(); })();
+(async () => {
+  await restoreFromCloud();
+  if (CLOUD_SYNC) {
+    setTimeout(backupToCloud, 90 * 1000);                 // re-assert after old instance is gone
+    setInterval(backupToCloud, 10 * 60 * 1000);           // periodic self-heal
+  }
+})();
 // Keep-alive self ping (Render free tier sleeps after 15 min idle)
 const SELF_URL = process.env.RENDER_EXTERNAL_URL || process.env.SELF_URL;
 if (SELF_URL) setInterval(() => fetch(SELF_URL + '/health').catch(() => {}), 10 * 60 * 1000);
@@ -343,5 +353,5 @@ if (SELF_URL) setInterval(() => fetch(SELF_URL + '/health').catch(() => {}), 10 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Mahians Designs running on http://0.0.0.0:${PORT}`);
   console.log(`Admin panel: http://0.0.0.0:${PORT}/admin  (user: ${ADMIN_USER})`);
-  console.log(`Storage: ${USE_CLOUD ? 'Cloudinary (persistent)' : 'local disk ' + UPLOAD_DIR}`);
+  console.log(`Storage: ${USE_CLOUD ? 'Cloudinary (persistent)' : 'local disk ' + UPLOAD_DIR} | content sync: ${CLOUD_SYNC ? 'ON (production)' : 'OFF (dev)'} | origin: ${ORIGIN}`);
 });
