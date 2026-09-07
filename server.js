@@ -55,9 +55,11 @@ function load() {
 const CLOUD_BACKUP_ID = 'mahians-designs/_content-backup';
 let backupTimer = null;
 function save(d) {
+  d.updatedAt = Date.now();
   fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2));
   if (USE_CLOUD) { clearTimeout(backupTimer); backupTimer = setTimeout(backupToCloud, 1500); }
 }
+process.on('SIGTERM', async () => { clearTimeout(backupTimer); await backupToCloud(); process.exit(0); });
 async function backupToCloud() {
   try {
     const json = fs.readFileSync(DATA_FILE, 'utf8');
@@ -66,21 +68,26 @@ async function backupToCloud() {
     console.log('[backup] content.json saved to Cloudinary');
   } catch (e) { console.log('[backup] failed:', e.message); }
 }
+async function fetchCloudBackup() {
+  // Use the Admin API to get the exact current version -> versioned URL is never served stale by the CDN
+  const meta = await cloudinary.api.resource(CLOUD_BACKUP_ID, { resource_type: 'raw' });
+  const url = cloudinary.url(CLOUD_BACKUP_ID, { resource_type: 'raw', secure: true, version: meta.version }) + '?t=' + Date.now();
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return await res.json();
+}
 async function restoreFromCloud() {
   if (!USE_CLOUD) return;
   try {
     const local = load();
-    const isEmpty = !local.photos.length && !local.videos.length;
-    if (!isEmpty) return;
-    const url = cloudinary.url(CLOUD_BACKUP_ID, { resource_type: 'raw', secure: true }) + '?t=' + Date.now();
-    const res = await fetch(url);
-    if (!res.ok) { console.log('[restore] no cloud backup yet'); return; }
-    const remote = await res.json();
-    if ((remote.photos && remote.photos.length) || (remote.videos && remote.videos.length)) {
+    const remote = await fetchCloudBackup();
+    const localEmpty = !local.photos.length && !local.videos.length;
+    const remoteNewer = (remote.updatedAt || 0) > (local.updatedAt || 0);
+    if (localEmpty || remoteNewer) {
       fs.writeFileSync(DATA_FILE, JSON.stringify(remote, null, 2));
-      console.log(`[restore] restored ${remote.photos.length} photos, ${remote.videos.length} videos from Cloudinary`);
-    }
-  } catch (e) { console.log('[restore] failed:', e.message); }
+      console.log(`[restore] restored from Cloudinary (${remote.photos.length} photos, ${remote.videos.length} videos, updated ${new Date(remote.updatedAt||0).toISOString()})`);
+    } else console.log('[restore] local data is up to date');
+  } catch (e) { console.log('[restore] skipped:', e.message); }
 }
 if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify(DEFAULT, null, 2));
 
@@ -192,10 +199,13 @@ app.put('/api/photos/:id', auth, (req, res) => {
   if (i < 0) return res.status(404).json({ error: 'Not found' });
   d.photos[i] = { ...d.photos[i], ...req.body, id: d.photos[i].id }; save(d); res.json(d.photos[i]);
 });
-app.delete('/api/photos/:id', auth, (req, res) => {
+app.delete('/api/photos/:id', auth, async (req, res) => {
   const d = load(); const item = d.photos.find(p => p.id === req.params.id);
-  d.photos = d.photos.filter(p => p.id !== req.params.id); save(d);
-  removeUpload(item && item.image); res.json({ ok: true });
+  d.photos = d.photos.filter(p => p.id !== req.params.id);
+  if (item) markDeleted(d, item.image);
+  save(d);
+  await removeUpload(item && item.image);
+  res.json({ ok: true });
 });
 app.post('/api/photos/reorder', auth, (req, res) => {
   const d = load(); const order = req.body.ids || [];
@@ -213,10 +223,12 @@ app.put('/api/videos/:id', auth, (req, res) => {
   if (i < 0) return res.status(404).json({ error: 'Not found' });
   d.videos[i] = { ...d.videos[i], ...req.body, id: d.videos[i].id }; save(d); res.json(d.videos[i]);
 });
-app.delete('/api/videos/:id', auth, (req, res) => {
+app.delete('/api/videos/:id', auth, async (req, res) => {
   const d = load(); const item = d.videos.find(v => v.id === req.params.id);
-  d.videos = d.videos.filter(v => v.id !== req.params.id); save(d);
-  if (item) { removeUpload(item.src); removeUpload(item.thumb); }
+  d.videos = d.videos.filter(v => v.id !== req.params.id);
+  if (item) { markDeleted(d, item.src); markDeleted(d, item.thumb); }
+  save(d);
+  if (item) { await removeUpload(item.src); await removeUpload(item.thumb); }
   res.json({ ok: true });
 });
 app.post('/api/videos/reorder', auth, (req, res) => {
@@ -224,15 +236,24 @@ app.post('/api/videos/reorder', auth, (req, res) => {
   d.videos.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id)); save(d); res.json({ ok: true });
 });
 
-function removeUpload(url) {
+async function removeUpload(url) {
   if (!url) return;
   if (url.startsWith('/uploads/')) {
     const f = path.join(UPLOAD_DIR, path.basename(url));
     fs.existsSync(f) && fs.unlink(f, () => {});
   } else if (USE_CLOUD && /res\.cloudinary\.com/.test(url)) {
     const m = url.match(/\/upload\/(?:v\d+\/)?(.+)\.\w+$/);
-    if (m) cloudinary.uploader.destroy(m[1], { resource_type: /\/video\//.test(url) ? 'video' : 'image' }).catch(() => {});
+    if (m) {
+      const rt = /\/video\//.test(url) ? 'video' : 'image';
+      try { const r = await cloudinary.uploader.destroy(m[1], { resource_type: rt, invalidate: true }); console.log('[delete] cloud', m[1], r.result); }
+      catch (e) { console.log('[delete] cloud failed', m[1], e.message); }
+    }
   }
+}
+function markDeleted(d, url) {
+  if (!url) return;
+  d.deleted = (d.deleted || []).filter(u => u !== url); d.deleted.unshift(url);
+  if (d.deleted.length > 1000) d.deleted.length = 1000;
 }
 
 // admin route
@@ -243,7 +264,7 @@ app.use((err, req, res, next) => res.status(400).json({ error: err.message }));
 async function syncCloudPhotos() {
   if (!USE_CLOUD) return;
   try {
-    const d = load(); const have = new Set([...d.photos.map(p => p.image), ...d.videos.map(v => v.src), ...d.videos.map(v => v.thumb), d.profile.photo]);
+    const d = load(); const have = new Set([...d.photos.map(p => p.image), ...d.videos.map(v => v.src), ...d.videos.map(v => v.thumb), d.profile.photo, ...(d.deleted || [])]);
     const r = await cloudinary.api.resources({ type: 'upload', prefix: 'mahians-designs/', resource_type: 'image', max_results: 500 });
     let n = 0;
     r.resources.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).forEach((x, i) => {
@@ -257,7 +278,7 @@ async function syncCloudPhotos() {
 }
 app.post('/api/recover', auth, async (req, res) => { await restoreFromCloud(); await syncCloudPhotos(); res.json(load()); });
 
-(async () => { await restoreFromCloud(); await syncCloudPhotos(); })();
+(async () => { await restoreFromCloud(); })();
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Mahians Designs running on http://0.0.0.0:${PORT}`);
   console.log(`Admin panel: http://0.0.0.0:${PORT}/admin  (user: ${ADMIN_USER})`);
