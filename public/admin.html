@@ -177,7 +177,7 @@
       <div class="card glass">
         <h3>Quick Guide <span class="pill">How to use</span></h3>
         <div class="hint">
-          <b>🖼️ Photos:</b> Upload your design images (JPG/PNG/WebP). Choose a category (Branding / Social / Print / UI). They show in the Portfolio section — 1 big on top, 2 side-by-side below, repeating.<br><br>
+          <b>🖼️ Photos:</b> Upload your design images (JPG/PNG/WebP). Choose a category (Branding / Social Media / Gaming / Print / UI). For Social Media pick the platform (Facebook, YouTube, Instagram…), for Gaming pick the type (Logo, Banner, Thumbnail…). They show in the Portfolio section — 1 big on top, 2 side-by-side below, repeating.<br><br>
           <b>🎬 Videos:</b> Upload an MP4 <i>or</i> paste a YouTube / Vimeo link. Pick the tab (Motion Graphics / Video Edit / Graphics Designs) and ratio. Each tab shows 16:9 on top and 9:16 pairs below.<br><br>
           <b>👤 Profile:</b> Change your photo, name, intro text and stats.<br><br>
           <b>📞 Contact:</b> Update WhatsApp, Discord and phone links used across the whole site.<br><br><b>🌐 Social Media:</b> Add YouTube, Instagram, Facebook, TikTok, Behance, Dribbble, LinkedIn, Fiverr and more — shown on your profile card, video section, contact and footer.
@@ -208,8 +208,9 @@
           <div>
             <div class="field"><label>Title *</label><input id="ph-title" placeholder="e.g. Aurora Tech Rebrand"></div>
             <div class="field"><label>Subtitle</label><input id="ph-sub" placeholder="e.g. Logo & Identity"></div>
-            <div class="field"><label>Category *</label>
-              <select id="ph-cat"><option value="brand">Branding</option><option value="social">Social Media</option><option value="print">Print</option><option value="ui">UI / Web</option></select>
+            <div class="row2">
+              <div class="field"><label>Category *</label><select id="ph-cat" onchange="fillSubcats()"></select></div>
+              <div class="field" id="ph-subwrap" style="display:none"><label>Platform / Type</label><select id="ph-subcat"></select></div>
             </div>
             <input type="hidden" id="ph-url"><input type="hidden" id="ph-id">
             <div style="display:flex;gap:10px">
@@ -221,9 +222,7 @@
       </div>
       <div class="card glass">
         <h3>Your Photos <span class="pill" id="ph-count">0</span></h3>
-        <div class="filters" id="ph-filters">
-          <span class="chip active" data-c="all">All</span><span class="chip" data-c="brand">Branding</span><span class="chip" data-c="social">Social</span><span class="chip" data-c="print">Print</span><span class="chip" data-c="ui">UI / Web</span>
-        </div>
+        <div class="filters" id="ph-filters"></div>
         <div class="grid" id="ph-list"></div>
       </div>
     </div>
@@ -344,6 +343,7 @@
 <div class="modal" id="confirm"><div class="mbox glass"><h3 id="cf-text">Delete?</h3><div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button><button class="btn btn-danger" id="cf-yes">Delete</button></div></div></div>
 <div id="toast"></div>
 
+<script src="/categories.js"></script>
 <script src="/socials.js?v=1788581496"></script>
 <script>
 let DATA=null, phFilter='all', vdFilter='all';
@@ -401,20 +401,32 @@ function resetForm(key){
 }
 
 // ---- PHOTOS ----
+function initCats(){
+  $('ph-cat').innerHTML=window.PHOTO_CATEGORIES.map(c=>`<option value="${c.key}">${c.name}</option>`).join('');
+  $('ph-filters').innerHTML='<span class="chip active" data-c="all">All</span>'+window.PHOTO_CATEGORIES.map(c=>`<span class="chip" data-c="${c.key}">${c.name}</span>`).join('');
+  fillSubcats();
+}
+function fillSubcats(sel){
+  const c=window.PHOTO_CATEGORIES.find(x=>x.key===$('ph-cat').value);
+  const w=$('ph-subwrap'),s=$('ph-subcat');
+  if(c&&c.subs){w.style.display='';s.innerHTML=c.subs.map(x=>`<option value="${x.key}">${x.name}</option>`).join('');if(sel)s.value=sel;}
+  else{w.style.display='none';s.innerHTML='';}
+}
+initCats();
 async function savePhoto(){
-  const body={title:$('ph-title').value.trim(),sub:$('ph-sub').value.trim(),category:$('ph-cat').value,image:$('ph-url').value};
+  const body={title:$('ph-title').value.trim(),sub:$('ph-sub').value.trim(),category:$('ph-cat').value,subcategory:$('ph-subwrap').style.display==='none'?'':$('ph-subcat').value,image:$('ph-url').value};
   if(!body.title)return toast('Title required',false);if(!body.image)return toast('Please upload an image',false);
   const id=$('ph-id').value;
   try{await api(id?'/api/photos/'+id:'/api/photos',{method:id?'PUT':'POST',body:JSON.stringify(body)});toast(id?'Photo updated':'Photo added!');resetForm('ph');refresh();}catch(e){toast(e.message,false);}
 }
-function editPhoto(id){const p=DATA.photos.find(x=>x.id===id);$('ph-id').value=id;$('ph-title').value=p.title;$('ph-sub').value=p.sub||'';$('ph-cat').value=p.category;$('ph-url').value=p.image;showPreview('ph',p.image);$('ph-file').textContent='Current image kept (upload to replace)';$('ph-form-title').innerHTML='Edit Photo <span class="pill">Editing</span>';$('ph-save').textContent='💾 Update Photo';window.scrollTo({top:0,behavior:'smooth'});}
+function editPhoto(id){const p=DATA.photos.find(x=>x.id===id);$('ph-id').value=id;$('ph-title').value=p.title;$('ph-sub').value=p.sub||'';$('ph-cat').value=p.category;fillSubcats(p.subcategory||'');$('ph-url').value=p.image;showPreview('ph',p.image);$('ph-file').textContent='Current image kept (upload to replace)';$('ph-form-title').innerHTML='Edit Photo <span class="pill">Editing</span>';$('ph-save').textContent='💾 Update Photo';window.scrollTo({top:0,behavior:'smooth'});}
 function delPhoto(id){confirmDel('Delete this photo?',async()=>{await api('/api/photos/'+id,{method:'DELETE'});toast('Deleted');refresh();});}
 async function movePhoto(id,dir){const ids=DATA.photos.map(p=>p.id);const i=ids.indexOf(id),j=i+dir;if(j<0||j>=ids.length)return;[ids[i],ids[j]]=[ids[j],ids[i]];await api('/api/photos/reorder',{method:'POST',body:JSON.stringify({ids})});refresh();}
-const CAT={brand:'Branding',social:'Social Media',print:'Print',ui:'UI / Web',motion:'Motion Graphics',edit:'Video Edit',design:'Graphics Designs'};
+const CAT={brand:'Branding',social:'Social Media',gaming:'Gaming',print:'Print',ui:'UI / Web',motion:'Motion Graphics',edit:'Video Edit',design:'Graphics Designs'};
 function renderPhotos(){
   const list=DATA.photos.filter(p=>phFilter==='all'||p.category===phFilter);
   $('ph-count').textContent=DATA.photos.length;
-  $('ph-list').innerHTML=list.length?list.map((p,i)=>`<div class="item"><div class="th" style="background-image:url('${withBase(p.image)}')"><span class="tag">${CAT[p.category]||p.category}</span></div><div class="bd"><b>${esc(p.title)}</b><small>${esc(p.sub||'')}</small><div class="act"><button class="btn btn-ghost btn-sm" onclick="movePhoto('${p.id}',-1)">↑</button><button class="btn btn-ghost btn-sm" onclick="movePhoto('${p.id}',1)">↓</button><button class="btn btn-ghost btn-sm" onclick="editPhoto('${p.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="delPhoto('${p.id}')">✕</button></div></div></div>`).join(''):'<div class="empty" style="grid-column:1/-1">No photos yet. Add your first design above! 🎨</div>';
+  $('ph-list').innerHTML=list.length?list.map((p,i)=>`<div class="item"><div class="th" style="background-image:url('${withBase(p.image)}')"><span class="tag">${CAT[p.category]||p.category}${window.subName(p.category,p.subcategory)?' • '+window.subName(p.category,p.subcategory):''}</span></div><div class="bd"><b>${esc(p.title)}</b><small>${esc(p.sub||'')}</small><div class="act"><button class="btn btn-ghost btn-sm" onclick="movePhoto('${p.id}',-1)">↑</button><button class="btn btn-ghost btn-sm" onclick="movePhoto('${p.id}',1)">↓</button><button class="btn btn-ghost btn-sm" onclick="editPhoto('${p.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="delPhoto('${p.id}')">✕</button></div></div></div>`).join(''):'<div class="empty" style="grid-column:1/-1">No photos yet. Add your first design above! 🎨</div>';
 }
 $('ph-filters').onclick=e=>{if(!e.target.dataset.c)return;phFilter=e.target.dataset.c;[...$('ph-filters').children].forEach(c=>c.classList.toggle('active',c===e.target));renderPhotos();};
 

@@ -316,6 +316,10 @@
   .foot-social a svg{width:14px;height:14px;fill:currentColor;}
   .foot-social a:hover{background:var(--sc);border-color:transparent;}
 
+  .subfilters{display:flex;gap:8px;flex-wrap:wrap;margin:-8px 0 18px;padding-left:4px;}
+  .subfilters:empty{display:none;}
+  .subfilters .filter{font-size:12px;padding:6px 13px;background:rgba(124,92,255,.08);}
+  .subfilters .filter.active{background:rgba(124,92,255,.35);color:#fff;border-color:rgba(124,92,255,.6);}
   footer{padding:20px 26px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-size:13px;color:var(--muted);}
   footer b{color:#fff;}
 
@@ -456,13 +460,8 @@
     <!-- PORTFOLIO -->
     <section id="portfolio">
       <div class="section-title"><h2>Featured Work</h2><span class="pill">Portfolio</span></div>
-      <div class="filters">
-        <span class="filter active" data-f="all">All</span>
-        <span class="filter" data-f="brand">Branding</span>
-        <span class="filter" data-f="social">Social Media</span>
-        <span class="filter" data-f="print">Print</span>
-        <span class="filter" data-f="ui">UI / Web</span>
-      </div>
+      <div class="filters" id="workFilters"></div>
+      <div class="subfilters" id="workSubFilters"></div>
       <div class="work-grid">
         <div class="work reveal" data-cat="brand">
           <div class="art"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#2b1d6b"/></linearGradient></defs><rect width="400" height="300" fill="url(#g1)"/><circle cx="200" cy="150" r="70" fill="none" stroke="#fff" stroke-width="10"/><path d="M165 185 L200 105 L235 185" fill="none" stroke="#ff8ab8" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><text x="200" y="260" text-anchor="middle" fill="#fff" font-size="18" font-weight="700" letter-spacing="6">AURORA</text></svg></div>
@@ -662,6 +661,7 @@
   </div>
 </div>
 
+<script src="/categories.js"></script>
 <script src="/socials.js?v=1788581496"></script>
 <script>
   // Reveal on scroll
@@ -683,20 +683,37 @@
     const t=setInterval(()=>{cur+=step; if(cur>=target){cur=target;clearInterval(t);} el.textContent=cur+'+';},18);
   }
 
-  // Portfolio filter
-  document.querySelectorAll('.filter').forEach(f=>{
-    f.addEventListener('click',()=>{
-      document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));
-      f.classList.add('active');
-      const cat=f.dataset.f;
-      document.querySelectorAll('.work').forEach(w=>{
-        const show=cat==='all'||w.dataset.cat===cat;
-        w.style.display=show?'':'none';
-        if(show){w.classList.add('show');}
-      });
-      layoutWorks();
+  // Portfolio filter (category + subcategory)
+  let curCat='all', curSub='all';
+  function buildFilters(){
+    const f=document.getElementById('workFilters');
+    f.innerHTML='<span class="filter active" data-f="all">All</span>'+window.PHOTO_CATEGORIES.map(c=>`<span class="filter" data-f="${c.key}">${c.name}</span>`).join('');
+    f.querySelectorAll('.filter').forEach(el=>el.addEventListener('click',()=>{
+      f.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));el.classList.add('active');
+      curCat=el.dataset.f;curSub='all';buildSubFilters();applyFilter();
+    }));
+  }
+  function buildSubFilters(){
+    const sf=document.getElementById('workSubFilters');const c=window.PHOTO_CATEGORIES.find(x=>x.key===curCat);
+    if(!c||!c.subs){sf.innerHTML='';return;}
+    // only show subs that actually have photos
+    const used=new Set([...document.querySelectorAll('.work[data-cat="'+curCat+'"]')].map(w=>w.dataset.sub||''));
+    const subs=c.subs.filter(x=>used.has(x.key));
+    if(!subs.length){sf.innerHTML='';return;}
+    sf.innerHTML='<span class="filter active" data-s="all">All '+c.name+'</span>'+subs.map(x=>`<span class="filter" data-s="${x.key}">${x.name}</span>`).join('');
+    sf.querySelectorAll('.filter').forEach(el=>el.addEventListener('click',()=>{
+      sf.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));el.classList.add('active');curSub=el.dataset.s;applyFilter();
+    }));
+  }
+  function applyFilter(){
+    document.querySelectorAll('.work').forEach(w=>{
+      const show=(curCat==='all'||w.dataset.cat===curCat)&&(curSub==='all'||(w.dataset.sub||'')===curSub);
+      w.style.display=show?'':'none';
+      if(show){w.classList.add('show');}
     });
-  });
+    layoutWorks();
+  }
+  buildFilters();
   function layoutWorks(){
     const vis=[...document.querySelectorAll('.work')].filter(w=>w.style.display!=='none');
     vis.forEach((w,i)=>w.classList.toggle('big',i%3===0));
@@ -761,8 +778,8 @@
   document.addEventListener('click',()=>document.getElementById('cdrop').classList.remove('open'));
 
   // ================= DYNAMIC CONTENT (from Admin Panel) =================
-  const CAT_LABEL={brand:'Branding',social:'Social Media',print:'Print',ui:'UI / Web',motion:'Motion Graphics',edit:'Video Edit',design:'Graphics Designs'};
-  const CAT_SUB={brand:'Logo & Identity',social:'Campaign Creatives',print:'Print Design',ui:'UI / Web'};
+  const CAT_LABEL={brand:'Branding',social:'Social Media',gaming:'Gaming',print:'Print',ui:'UI / Web',motion:'Motion Graphics',edit:'Video Edit',design:'Graphics Designs'};
+  const CAT_SUB={brand:'Logo & Identity',social:'Social Media Design',gaming:'Gaming Design',print:'Print Design',ui:'UI / Web'};
   function cld(u,w){ if(!u||!/res\.cloudinary\.com\/[^/]+\/image\/upload\//.test(u)) return u; return u.replace(/\/image\/upload\/(?!.*f_auto)/,'/image/upload/f_auto,q_auto,c_limit,w_'+(w||1200)+'/'); }
   function escH(t){return String(t||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   function ytId(u){const m=(u||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{11})/);return m?m[1]:'';}
@@ -810,12 +827,12 @@
     // portfolio photos
     if(d.photos && d.photos.length){
       const grid=document.querySelector('.work-grid');
-      grid.innerHTML=d.photos.map(ph=>`<div class="work reveal show" data-cat="${escH(ph.category)}" data-full="${escH(ph.image)}" data-title="${escH(ph.title)}" data-sub="${escH(ph.sub||CAT_SUB[ph.category]||'')}">
+      grid.innerHTML=d.photos.map(ph=>{const subLabel=window.subName(ph.category,ph.subcategory);const tag=(window.catName(ph.category)||ph.category)+(subLabel?' • '+subLabel:'');const line=ph.sub||subLabel||CAT_SUB[ph.category]||'';return `<div class="work reveal show" data-cat="${escH(ph.category)}" data-subcat="${escH(ph.subcategory||'')}" data-full="${escH(ph.image)}" data-title="${escH(ph.title)}" data-sub="${escH(line)}">
         <div class="art"><img src="${escH(cld(ph.image,1200))}" alt="${escH(ph.title)}" loading="lazy" decoding="async"></div>
-        <span class="tag">${CAT_LABEL[ph.category]||escH(ph.category)}</span>
-        <div class="info"><small>${escH(ph.sub||CAT_SUB[ph.category]||'')}</small><h4>${escH(ph.title)}</h4></div></div>`).join('');
-      grid.querySelectorAll('.work').forEach(bindWork);
-      layoutWorks();
+        <span class="tag">${escH(tag)}</span>
+        <div class="info"><small>${escH(line)}</small><h4>${escH(ph.title)}</h4></div></div>`;}).join('');
+      grid.querySelectorAll('.work').forEach(w=>{w.dataset.sub=w.dataset.subcat;bindWork(w);});
+      buildSubFilters();applyFilter();
     }
     // videos
     if(d.videos && d.videos.length){
