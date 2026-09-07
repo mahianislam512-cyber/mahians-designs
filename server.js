@@ -279,6 +279,10 @@ async function syncCloudPhotos() {
 app.post('/api/recover', auth, async (req, res) => { await restoreFromCloud(); await syncCloudPhotos(); res.json(load()); });
 
 (async () => { await restoreFromCloud(); })();
+// Keep-alive self ping (Render free tier sleeps after 15 min idle)
+const SELF_URL = process.env.RENDER_EXTERNAL_URL || process.env.SELF_URL;
+if (SELF_URL) setInterval(() => fetch(SELF_URL + '/health').catch(() => {}), 10 * 60 * 1000);
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Mahians Designs running on http://0.0.0.0:${PORT}`);
   console.log(`Admin panel: http://0.0.0.0:${PORT}/admin  (user: ${ADMIN_USER})`);

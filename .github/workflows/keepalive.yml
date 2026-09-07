@@ -1,0 +1,13 @@
+# GitHub Actions: pings the site every 10 minutes so Render free plan never sleeps.
+name: Keep site awake
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping site
+        run: |
+          curl -s -o /dev/null -w "status %{http_code} in %{time_total}s\n" https://mahians-designs.onrender.com/health || true
